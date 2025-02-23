@@ -11,8 +11,8 @@
 # ---------------------------------------------------------------------
 # For local testing by maintainer:
 #
-# docker build --no-cache -t kimai-fpmapache --build-arg BASE=fpm .
-# docker build --no-cache -t kimai- --build-arg BASE=apache .
+# docker build --no-cache -t kimai-fpm --build-arg BASE=fpm .
+# docker build --no-cache -t kimai-apache --build-arg BASE=apache .
 # docker run -d --name kimai-apache-app kimai-apache
 # docker exec -ti kimai-apache-app /bin/bash
 # ---------------------------------------------------------------------
