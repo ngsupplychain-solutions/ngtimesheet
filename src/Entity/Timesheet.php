@@ -123,6 +123,30 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[ORM\Column(name: 'timezone', type: 'string', length: 64, nullable: false)]
     #[Assert\Timezone]
     private ?string $timezone = null;
+
+     /**
+     * @ORM\Column(type="string", length=20)
+     */
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private $day;
+
+    /**
+     * Jira ID for the timesheet entry.
+     */
+    #[ORM\Column(name: 'jira_ids', type: 'string', length: 50, nullable: true)]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['Default'])]
+    private ?string $jiraId = null;
+
+    /**
+     * The location where the work was performed (on-site or off-site).
+     */
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Assert\Choice(choices: ['on-site', 'off-site'], message: 'Choose a valid location.')]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['Default'])]
+    private ?string $location = null;
+
     /**
      * @internal for storing the localized state of dates (see $timezone)
      */
@@ -269,6 +293,10 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         $this->timezone = $begin->getTimezone()->getName();
         // make sure that the original date is always kept in UTC
         $this->date = new \DateTimeImmutable($begin->format('Y-m-d 00:00:00'), new DateTimeZone('UTC'));
+        
+        // Automatically compute the day from the begin time and store it in the day field.
+        // The 'l' format returns the full name of the day, for example "Monday", "Tuesday", etc.
+        $this->day = $begin->format('l');
 
         return $this;
     }
@@ -299,6 +327,11 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
+    public function getDay(): ?string
+    {
+        return $this->day;
+    }
+
     public function setDuration(?int $duration): Timesheet
     {
         $this->duration = $duration;
@@ -306,6 +339,28 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
         return $this;
     }
 
+    public function getJiraId(): ?string
+    {
+        return $this->jiraId;
+    }
+
+    public function setJiraId(?string $jiraId): self
+    {
+        $this->jiraId = $jiraId;
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
+        return $this;
+    }
+    
     /**
      * Do not rely on the results of this method for running records.
      */
