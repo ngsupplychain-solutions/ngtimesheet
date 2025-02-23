@@ -19,6 +19,8 @@ use App\Repository\Query\TimesheetStatisticQuery;
 use App\Repository\Query\UserQuery;
 use App\Repository\Query\VisibilityInterface;
 use App\Repository\UserRepository;
+use App\Repository\ActivityRepository;
+use App\Repository\ProjectRepository;
 use App\Timesheet\TimesheetStatisticService;
 use PhpOffice\PhpSpreadsheet\Reader\Html;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,8 +30,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: '/reporting/users')]
 #[IsGranted('report:other')]
-final class ReportUsersMonthController extends AbstractController
+final class ReportUsersMonthController extends AbstractUserReportController
 {
+    private ProjectRepository $projectRepository;
+    private UserRepository $userRepository;
+
+    // The constructor now must accept the dependencies required by the parent.
+    public function __construct(
+        TimesheetStatisticService $statisticService,
+        ProjectRepository $projectRepository,
+        ActivityRepository $activityRepository,
+        UserRepository $userRepository
+    ) {
+        // Pass the required dependencies to the parent constructor.
+        parent::__construct($statisticService, $projectRepository, $activityRepository);
+        $this->userRepository = $userRepository;
+        $this->projectRepository = $projectRepository;
+    }
+
     #[Route(path: '/month', name: 'report_monthly_users', methods: ['GET', 'POST'])]
     public function report(Request $request, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
@@ -74,6 +92,9 @@ final class ReportUsersMonthController extends AbstractController
         $query->setSystemAccount(false);
         $query->setCurrentUser($currentUser);
 
+        $projectId = $request->query->getInt('project', 0);  // 0 means not provided
+        $teamId    = $request->query->getInt('team', 0);
+
         if ($form->isSubmitted()) {
             if (!$form->isValid()) {
                 $values->setDate($dateTimeFactory->getStartOfMonth());
@@ -85,6 +106,7 @@ final class ReportUsersMonthController extends AbstractController
         }
 
         $allUsers = $userRepository->getUsersForQuery($query);
+        $userIds = array_map(fn($user) => $user->getId(), $allUsers);
 
         if ($values->getDate() === null) {
             $values->setDate($dateTimeFactory->getStartOfMonth());
@@ -103,20 +125,16 @@ final class ReportUsersMonthController extends AbstractController
         $next = clone $start;
         $next->modify('+1 month');
 
-        $dayStats = [];
-        $hasData = true;
+        // Optional: if a specific project is provided, get it
+        $selectedProject = $values->getProject();
 
-        if (!empty($allUsers)) {
-            $statsQuery = new TimesheetStatisticQuery($start, $end, $allUsers);
-            $statsQuery->setProject($values->getProject());
-            $dayStats = $statisticService->getDailyStatistics($statsQuery);
-        }
-
-        if (empty($dayStats)) {
-            $dayStats = [new DailyStatistic($start, $end, $currentUser)];
-            $hasData = false;
-        }
-
+        $reportData = $this->prepareAllUsersReport(
+            $userIds,
+            $start->format('Y-m-d'),
+            $end->format('Y-m-d'),
+            $selectedProject
+        );
+        
         return [
             'period_attribute' => 'days',
             'dataType' => $values->getSumType(),
@@ -130,8 +148,9 @@ final class ReportUsersMonthController extends AbstractController
             'decimal' => $values->isDecimal(),
             'subReportDate' => $values->getDate(),
             'subReportRoute' => 'report_user_month',
-            'stats' => $dayStats,
-            'hasData' => $hasData,
+            'stats' => $reportData,
+            'hasData' => !empty($reportData),
         ];
     }
+
 }
