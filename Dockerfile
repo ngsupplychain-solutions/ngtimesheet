@@ -286,7 +286,7 @@ FROM base AS dev
 # copy kimai develop source 
 COPY --from=git-prod --chown=www-data:www-data /opt/kimai /opt/kimai
 # ---------------------------------------------------------------------------------------
-# copy kimai from Local Git cloned directory
+# Override kimai from Local Git cloned directory 
 # RUN mkdir -p /opt/kimai/{bin,config,migrations,src,templates,translations,public,var}
 COPY symfony.lock kimai.sh eslint.config.mjs \
     UPGRADING.md UPGRADING-1.md \
@@ -325,7 +325,7 @@ FROM base AS prod
 # copy kimai production source
 COPY --from=git-prod --chown=www-data:www-data /opt/kimai /opt/kimai
 # ---------------------------------------------------------------------------------------
-# copy kimai from Local Git cloned directory
+# Override kimai from Local Git cloned directory 
 # RUN mkdir -p /opt/kimai/{bin,config,migrations,src,templates,translations,public,var}
 COPY symfony.lock kimai.sh eslint.config.mjs \
     UPGRADING.md UPGRADING-1.md \
