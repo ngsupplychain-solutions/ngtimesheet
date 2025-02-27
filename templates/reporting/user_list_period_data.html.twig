@@ -20,9 +20,16 @@
     {% endfor %}
 {% endif %}
 
+<style>
+    .table th, .table td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
 <table class="table table-hover dataTable">
     <thead>
-        <tr>
+        <tr class="table-header">
             <th>Resource Name</th>
             <th>Role (Title)</th>
             <th>Team</th>
@@ -33,8 +40,8 @@
                 <th>{{ date }}</th>
             {% endfor %}
         </tr>
-        <tr>
-            <th colspan="5" class="text-center">Weekday</th>
+        <tr class="weekday-header">
+            <th colspan="6">Weekday</th>
             {% for date in all_dates %}
                 <th>{{ date|date('l') }}</th>
             {% endfor %}
@@ -50,7 +57,7 @@
                 <td>{{ row.offsite|number_format(0) }}</td>
                 <td>{{ row.onsite|number_format(0) }}</td>
                 {% for date in all_dates %}
-                     <td>
+                    <td>
                         {% if row[date] is same as(0) %}
                         0
                         {% elseif row[date] is number %}

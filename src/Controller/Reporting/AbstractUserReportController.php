@@ -174,14 +174,13 @@ abstract class AbstractUserReportController extends AbstractController
         // Step 2: Build final pivot and check for 'leave' codes
         // define the short codes for your known activities
         $leaveMap = [
-            'weekoff'       => 'W',
+            'week off'      => 'W',
             'week-off'      => 'W',
             'comp-off'      => 'C',
             'vacation'      => 'V',
             'sick'          => 'S',
             'emergency'     => 'S',
             'sick/emergency'=> 'S',
-            'ad dolorum'=>'AD'
         ];
 
         // Step 2: Prepare the final pivot report

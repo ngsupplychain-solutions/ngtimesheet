@@ -154,8 +154,10 @@ class TimesheetEditForm extends AbstractType
                 'On-site'  => 'on-site',
                 'Off-site' => 'off-site',
             ],
-            'placeholder' => 'Select location',
-            'required'    => false,
+            // or if you want a placeholder and to save "off-site" only if user never chooses:
+             'placeholder' => 'Choose a location',
+             'empty_data'  => 'off-site',
+            'required' => false,
         ]);
 
         $builder->add('tags', TagsType::class, ['required' => false]);
