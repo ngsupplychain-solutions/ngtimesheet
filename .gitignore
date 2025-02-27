@@ -3,7 +3,7 @@
 /.env-*
 /.idea/
 .DS_Store
-
+/docker-compose.yml
 # custom apache rules e.g. to deactivate ioncube loader
 /public/.user.ini
 
