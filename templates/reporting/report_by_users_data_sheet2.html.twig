@@ -1,0 +1,31 @@
+{% import "macros/widgets.html.twig" as widgets %}
+
+<table class="table table-hover dataTable">
+    <thead>
+        <tr>
+            
+            <th>Resource Name</th>
+            <th>Project</th>
+            <th>Component</th>
+            <th>Week_Day</th>
+            <th>Work_Date</th>
+            <th class="text-center reportDataTypeTitle">Total_hours(hrs)</th>
+            <th>Jira_Id</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in stats %}
+            <tr>
+                <td>{{ entry.name }}</td>
+                <td>{{ entry.projects }}</td>
+                <td>{{ entry.components }}</td>
+                <td>{{ entry.weekday }}</td>
+                <td>{{ entry.workdate }}</td>
+                <td>{{ entry.hours }}</td>
+                <td>{{ entry.jira_ids }}</td>
+                <td>{{ entry.descriptions }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

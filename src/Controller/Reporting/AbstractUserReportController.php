@@ -107,7 +107,7 @@ abstract class AbstractUserReportController extends AbstractController
         return $transformedData;
     }
 
-
+    // Sheet 1
     protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
     {
         $projectData = $this->projectRepository->getAllUsersProjectData($userIds, $startDate, $endDate, $project);
@@ -280,4 +280,63 @@ abstract class AbstractUserReportController extends AbstractController
         // 3) Append the totals row to $finalReport
         $finalReport[] = $totalsRow;
     }
+
+    // Sheet 2
+    protected function prepareAllUsersReportSheet2(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
+    {
+        $projectData = $this->projectRepository->getAllUsersDailyProjectData($userIds, $startDate, $endDate, $project);
+        $transformedData = [];
+        $dateWiseData = [];
+    
+        foreach ($projectData as $entry) {
+            $workdate = $entry['workdate'];  // Already in Y-m-d format from DATE(t.start_time)
+            $weekday  = $entry['weekday'];   // This comes from t.day in DB
+            $username = $entry['username'];
+            $projectName = $entry['project_name'];
+            $secondsWorked = $entry['total_duration'];
+            $jiraIds = $entry['jira_ids'];
+            $description = $entry['description'];
+            $component = $entry['component'];
+    
+            // Convert seconds to hours.
+            $hoursWorked = $secondsWorked / 3600;
+    
+            // Create a composite key if you want to group by both date and user.
+            $groupKey = $username . '|' . $workdate;
+            if (!isset($dateWiseData[$groupKey])) {
+                $dateWiseData[$groupKey] = [
+                    'WorkDate'    => (new \DateTime($workdate))->format('j-M-Y'),
+                    'Weekday'     => $weekday,
+                    'username'    => $username,
+                    'hours'       => 0,
+                    'projects'    => [],
+                    'jira_ids'    => [],
+                    'descriptions'=> [],
+                    'components'  => [],
+                ];
+            }
+            $dateWiseData[$groupKey]['hours'] += $hoursWorked;
+            $dateWiseData[$groupKey]['projects'][$projectName] = $projectName;
+            $dateWiseData[$groupKey]['jira_ids'][] = $jiraIds;
+            $dateWiseData[$groupKey]['descriptions'][] = $description;
+            $dateWiseData[$groupKey]['components'][] = $component;
+        }
+    
+        // Transform grouped data into a flat report array.
+        foreach ($dateWiseData as $entry) {
+            $transformedData[] = [
+                'name'        => $entry['username'],
+                'workdate'    => $entry['WorkDate'],
+                'weekday'     => $entry['Weekday'],
+                'hours'       => $entry['hours'],
+                'projects'    => implode(', ', $entry['projects']),
+                'jira_ids'    => implode(', ', $entry['jira_ids']),
+                'descriptions'=> implode(', ', $entry['descriptions']),
+                'components'  => implode(', ', $entry['components']),
+            ];
+        }
+    
+        return $transformedData;
+    }
+	
 }

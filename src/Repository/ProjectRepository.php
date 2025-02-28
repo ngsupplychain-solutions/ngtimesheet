@@ -541,6 +541,7 @@ class ProjectRepository extends EntityRepository
         return $queryBuilder->executeQuery()->fetchAllAssociative();
     }
 
+    // Get Users month data sheet 1
     public function getAllUsersProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
     {
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
@@ -577,6 +578,46 @@ class ProjectRepository extends EntityRepository
         return $queryBuilder->executeQuery()->fetchAllAssociative();
        
     }
+
+    //Get Users Month data sheet2
+    public function getAllUsersDailyProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
+    {
+        // $idsString = implode(',', $userIds);
+        $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
+
+        $queryBuilder->select(
+                'u.username',
+                'DATE(t.start_time) AS workdate',
+                't.day AS weekday',
+                'p.name AS project_name',
+                'SUM(t.duration) AS total_duration',
+                't.jira_ids',
+                't.description',
+                'a.name AS component'
+            ) 
+            ->from('kimai2_timesheet', 't')
+            ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
+            ->join('t', 'kimai2_projects', 'p', 'p.id = t.project_id')
+            ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')
+            ->where($queryBuilder->expr()->in('t.user', ':userIds'))
+            ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
+            ->groupBy('u.id, DATE(t.start_time), p.name, t.jira_ids, t.description, t.day, a.name')
+            ->addOrderBy('DATE(t.start_time)')
+            ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
+            ->setParameter('startDate', $startDate)
+            ->setParameter('endDate', $endDate)
+            ->orderBy('u.username');
+
+            if (!empty($project)) {
+                $queryBuilder
+                    ->andWhere('t.project_id = :projectId')
+                    ->setParameter('projectId', $project->getId());
+            }
+            
+        return $queryBuilder->executeQuery()->fetchAllAssociative();
+       
+    }
+
 
     public function getTeamsForUser(int $userId, ?int $projectId = null): array
     {   
