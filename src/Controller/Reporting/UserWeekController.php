@@ -22,6 +22,11 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use App\Style\ExportUsersStyle;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 #[Route(path: '/reporting/user')]
 #[IsGranted('report:user')]
 final class UserWeekController extends AbstractUserReportController
@@ -41,14 +46,19 @@ final class UserWeekController extends AbstractUserReportController
     public function export(Request $request): Response
     {
         $data = $this->getData($request, true);
-
         $content = $this->renderView('reporting/report_by_user_data.html.twig', $data);
 
         $reader = new Html();
         $spreadsheet = $reader->loadFromString($content);
+        $worksheet = $spreadsheet->getActiveSheet();
 
-        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'kimai-export-user-weekly');
+        // Apply header and data styling.
+		ExportUsersStyle::applyHeaderAndDataStyling($worksheet);
 
+		// Color rows based on component and duration.
+		ExportUsersStyle::colorRowsByComponent($worksheet);
+
+        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'Export-user-weekly');
         return $writer->getFileResponse($spreadsheet);
     }
 

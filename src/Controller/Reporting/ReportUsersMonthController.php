@@ -106,7 +106,7 @@ final class ReportUsersMonthController extends AbstractUserReportController
 		//----------------------------------------------------
 
 
-        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'kimai-export-users-monthly');
+        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'Export-users-monthly');
         return $writer->getFileResponse($spreadsheet);
     }
 
