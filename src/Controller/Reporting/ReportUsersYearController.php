@@ -183,7 +183,7 @@ final class ReportUsersYearController extends AbstractUserReportController
             'decimal' => $values->isDecimal(),
             'form' => $form->createView(),
             'stats' => $reportData,
-            'hasData' => $hasData,
+            'hasData' => !empty($reportData),
         ];
     }
 
@@ -192,10 +192,10 @@ final class ReportUsersYearController extends AbstractUserReportController
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory();
 
-        $values = new MonthlyUserList();
+        $values = new YearlyUserList();
         $values->setDate($dateTimeFactory->getStartOfMonth());
 
-        $form = $this->createFormForGetRequest(MonthlyUserListForm::class, $values, [
+        $form = $this->createFormForGetRequest(YearlyUserListForm::class, $values, [
             'timezone' => $dateTimeFactory->getTimezone()->getName(),
             'start_date' => $values->getDate(),
         ]);

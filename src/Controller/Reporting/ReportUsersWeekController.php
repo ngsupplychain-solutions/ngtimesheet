@@ -194,10 +194,10 @@ final class ReportUsersWeekController extends AbstractUserReportController
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory();
 
-        $values = new MonthlyUserList();
+        $values = new WeeklyUserList();
         $values->setDate($dateTimeFactory->getStartOfMonth());
 
-        $form = $this->createFormForGetRequest(MonthlyUserListForm::class, $values, [
+        $form = $this->createFormForGetRequest(WeeklyUserListForm::class, $values, [
             'timezone' => $dateTimeFactory->getTimezone()->getName(),
             'start_date' => $values->getDate(),
         ]);
