@@ -39,22 +39,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 #[IsGranted('report:other')]
 final class ReportUsersWeekController extends AbstractUserReportController
 {
-    private ProjectRepository $projectRepository;
-    private UserRepository $userRepository;
-
-    // The constructor now must accept the dependencies required by the parent.
-    public function __construct(
-        TimesheetStatisticService $statisticService,
-        ProjectRepository $projectRepository,
-        ActivityRepository $activityRepository,
-        UserRepository $userRepository
-    ) {
-        // Pass the required dependencies to the parent constructor.
-        parent::__construct($statisticService, $projectRepository, $activityRepository);
-        $this->userRepository = $userRepository;
-        $this->projectRepository = $projectRepository;
-    }
-
     #[Route(path: '/week', name: 'report_weekly_users', methods: ['GET', 'POST'])]
     public function report(Request $request, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
