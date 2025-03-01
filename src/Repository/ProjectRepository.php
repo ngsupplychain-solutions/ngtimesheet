@@ -528,7 +528,7 @@ class ProjectRepository extends EntityRepository
         ->join('t', 'kimai2_projects', 'p', 'p.id = t.project_id')
         ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')  // Join with the activities table
         ->where('t.user = :userId')
-        ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
+        ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
         ->groupBy('DATE(t.start_time), t.day, p.name, u.username, t.jira_ids, t.description', 'a.name')
         ->orderBy('p.name')
         ->addOrderBy('DATE(t.start_time)')
