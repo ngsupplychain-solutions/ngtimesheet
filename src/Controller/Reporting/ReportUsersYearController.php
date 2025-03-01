@@ -80,7 +80,7 @@ final class ReportUsersYearController extends AbstractUserReportController
         //---------------------Style for Sheet1-----------------
 		$spreadsheet = $reader->loadFromString($contentFormat1);
 		$sheet1 = $spreadsheet->getActiveSheet();
-		$sheet1->setTitle('MonthlyReport');
+		$sheet1->setTitle('YearlyReport');
 
 		// Apply all header design and conditional formatting in one function.
 		ExportStyle::applyExportDesign($sheet1);
@@ -253,16 +253,16 @@ final class ReportUsersYearController extends AbstractUserReportController
         return [
             'period_attribute' => 'days',
             'dataType' => $values->getSumType(),
-            'report_title' => 'report_monthly_users',
-            'box_id' => 'monthly-user-list-reporting-box',
-            'export_route' => 'report_monthly_users_export',
+            'report_title' => 'report_yearly_users',
+            'box_id' => 'yearly-user-list-reporting-box',
+            'export_route' => 'report_yearly_users_export',
             'form' => $form->createView(),
             'current' => $start,
             'next' => $next,
             'previous' => $previous,
             'decimal' => $values->isDecimal(),
             'subReportDate' => $values->getDate(),
-            'subReportRoute' => 'report_user_month',
+            'subReportRoute' => 'report_user_year',
             'stats' => $reportData,
             'hasData' => !empty($reportData),
         ];
