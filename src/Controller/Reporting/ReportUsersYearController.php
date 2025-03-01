@@ -71,7 +71,7 @@ final class ReportUsersYearController extends AbstractUserReportController
         $dataFormat1 = $this->getData($request, $systemConfiguration, $statisticService, $userRepository);
         $contentFormat1 = $this->renderView('reporting/report_user_list_monthly_export.html.twig', $dataFormat1);
 
-        $dataFormat2 = $this->getDataSheet2($request, $statisticService, $userRepository);
+        $dataFormat2 = $this->getDataSheet2($request, $systemConfiguration, $statisticService, $userRepository);
         $contentFormat2 = $this->renderView('reporting/report_by_users_data_sheet2.html.twig', $dataFormat2);
 
 		$spreadsheet = new Spreadsheet();
@@ -187,13 +187,19 @@ final class ReportUsersYearController extends AbstractUserReportController
         ];
     }
 
-    private function getDataSheet2(Request $request, TimesheetStatisticService $statisticService, UserRepository $userRepository): array
+    private function getDataSheet2(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory();
 
+        $defaultDate = $dateTimeFactory->createStartOfYear();
+
+        if (null !== ($financialYear = $systemConfiguration->getFinancialYearStart())) {
+            $defaultDate = $this->getDateTimeFactory()->createStartOfFinancialYear($financialYear);
+        }
+
         $values = new YearlyUserList();
-        $values->setDate($dateTimeFactory->getStartOfMonth());
+        $values->setDate(clone $defaultDate);
 
         $form = $this->createFormForGetRequest(YearlyUserListForm::class, $values, [
             'timezone' => $dateTimeFactory->getTimezone()->getName(),
@@ -212,7 +218,7 @@ final class ReportUsersYearController extends AbstractUserReportController
 
         if ($form->isSubmitted()) {
             if (!$form->isValid()) {
-                $values->setDate($dateTimeFactory->getStartOfMonth());
+                $values->setDate(clone $defaultDate);
             } else {
                 if ($values->getTeam() !== null) {
                     $query->setSearchTeams([$values->getTeam()]);
@@ -224,21 +230,15 @@ final class ReportUsersYearController extends AbstractUserReportController
         $userIds = array_map(fn($user) => $user->getId(), $allUsers);
 
         if ($values->getDate() === null) {
-            $values->setDate($dateTimeFactory->getStartOfMonth());
+            $values->setDate(clone $defaultDate);
         }
 
         /** @var \DateTime $start */
         $start = $values->getDate();
-        $start->modify('first day of 00:00:00');
 
-        $end = clone $start;
-        $end->modify('last day of 23:59:59');
-
-        $previous = clone $start;
-        $previous->modify('-1 month');
-
-        $next = clone $start;
-        $next->modify('+1 month');
+        // there is a potential edge case bug for financial years:
+        // the last month will be skipped, if the financial year started on a different day than the first
+        $end = $dateTimeFactory->createEndOfFinancialYear($start);
 
         // Optional: if a specific project is provided, get it
         $selectedProject = $values->getProject();

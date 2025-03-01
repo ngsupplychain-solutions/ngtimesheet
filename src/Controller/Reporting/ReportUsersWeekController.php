@@ -195,7 +195,7 @@ final class ReportUsersWeekController extends AbstractUserReportController
         $dateTimeFactory = $this->getDateTimeFactory();
 
         $values = new WeeklyUserList();
-        $values->setDate($dateTimeFactory->getStartOfMonth());
+        $values->setDate($dateTimeFactory->getStartOfWeek());
 
         $form = $this->createFormForGetRequest(WeeklyUserListForm::class, $values, [
             'timezone' => $dateTimeFactory->getTimezone()->getName(),
@@ -214,7 +214,7 @@ final class ReportUsersWeekController extends AbstractUserReportController
 
         if ($form->isSubmitted()) {
             if (!$form->isValid()) {
-                $values->setDate($dateTimeFactory->getStartOfMonth());
+                $values->setDate($dateTimeFactory->getStartOfWeek());
             } else {
                 if ($values->getTeam() !== null) {
                     $query->setSearchTeams([$values->getTeam()]);
@@ -226,21 +226,19 @@ final class ReportUsersWeekController extends AbstractUserReportController
         $userIds = array_map(fn($user) => $user->getId(), $allUsers);
 
         if ($values->getDate() === null) {
-            $values->setDate($dateTimeFactory->getStartOfMonth());
+            $values->setDate($dateTimeFactory->getStartOfWeek());
         }
 
-        /** @var \DateTime $start */
-        $start = $values->getDate();
-        $start->modify('first day of 00:00:00');
-
-        $end = clone $start;
-        $end->modify('last day of 23:59:59');
+        $start = $dateTimeFactory->getStartOfWeek($values->getDate());
+        $end = $dateTimeFactory->getEndOfWeek($values->getDate());
 
         $previous = clone $start;
-        $previous->modify('-1 month');
+        $previous->modify('-1 week');
 
         $next = clone $start;
-        $next->modify('+1 month');
+        $next->modify('+1 week');
+
+        $hasData = true;
 
         // Optional: if a specific project is provided, get it
         $selectedProject = $values->getProject();
@@ -266,7 +264,7 @@ final class ReportUsersWeekController extends AbstractUserReportController
             'subReportDate' => $values->getDate(),
             'subReportRoute' => 'report_user_week',
             'stats' => $reportData,
-            'hasData' => !empty($reportData),
+            'hasData' => $hasData,
         ];
     }
 }
