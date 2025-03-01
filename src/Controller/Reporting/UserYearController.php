@@ -57,7 +57,7 @@ final class UserYearController extends AbstractUserReportController
 		// Color rows based on component and duration.
 		ExportUsersStyle::colorRowsByComponent($worksheet);
 
-        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'kimai-export-user-yearly');
+        $writer = new BinaryFileResponseWriter(new XlsxWriter(), 'Export-user-yearly');
         return $writer->getFileResponse($spreadsheet);
     }
 

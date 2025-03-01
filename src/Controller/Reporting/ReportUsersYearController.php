@@ -20,6 +20,8 @@ use App\Repository\Query\TimesheetStatisticQuery;
 use App\Repository\Query\UserQuery;
 use App\Repository\Query\VisibilityInterface;
 use App\Repository\UserRepository;
+use App\Repository\ActivityRepository;
+use App\Repository\ProjectRepository;
 use App\Timesheet\TimesheetStatisticService;
 use PhpOffice\PhpSpreadsheet\Reader\Html;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,8 +38,24 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 #[Route(path: '/reporting/users')]
 #[IsGranted('report:other')]
-final class ReportUsersYearController extends AbstractController
+final class ReportUsersYearController extends AbstractUserReportController
 {
+    private ProjectRepository $projectRepository;
+    private UserRepository $userRepository;
+
+    // The constructor now must accept the dependencies required by the parent.
+    public function __construct(
+        TimesheetStatisticService $statisticService,
+        ProjectRepository $projectRepository,
+        ActivityRepository $activityRepository,
+        UserRepository $userRepository
+    ) {
+        // Pass the required dependencies to the parent constructor.
+        parent::__construct($statisticService, $projectRepository, $activityRepository);
+        $this->userRepository = $userRepository;
+        $this->projectRepository = $projectRepository;
+    }
+
     #[Route(path: '/year', name: 'report_yearly_users', methods: ['GET', 'POST'])]
     public function report(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
@@ -164,7 +182,7 @@ final class ReportUsersYearController extends AbstractController
             'export_route' => 'report_yearly_users_export',
             'decimal' => $values->isDecimal(),
             'form' => $form->createView(),
-            'stats' => $monthStats,
+            'stats' => $reportData,
             'hasData' => $hasData,
         ];
     }
