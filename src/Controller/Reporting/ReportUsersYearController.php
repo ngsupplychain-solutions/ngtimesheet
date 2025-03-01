@@ -251,18 +251,14 @@ final class ReportUsersYearController extends AbstractUserReportController
         );
         
         return [
-            'period_attribute' => 'days',
+            'subReportDate' => $values->getDate(),
+            'period_attribute' => 'months',
             'dataType' => $values->getSumType(),
             'report_title' => 'report_yearly_users',
             'box_id' => 'yearly-user-list-reporting-box',
             'export_route' => 'report_yearly_users_export',
-            'form' => $form->createView(),
-            'current' => $start,
-            'next' => $next,
-            'previous' => $previous,
             'decimal' => $values->isDecimal(),
-            'subReportDate' => $values->getDate(),
-            'subReportRoute' => 'report_user_year',
+            'form' => $form->createView(),
             'stats' => $reportData,
             'hasData' => !empty($reportData),
         ];
