@@ -244,6 +244,12 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[Serializer\Accessor(getter: 'getVisibleMetaFields')]
     private Collection $meta;
 
+    /**
+     * The timestamp when the timesheet was created.
+     */
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable', nullable: false)]
+    private ?\DateTimeInterface $createdAt = null;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -359,6 +365,25 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     {
         $this->location = $location;
         return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
     }
     
     /**
