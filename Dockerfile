@@ -27,7 +27,7 @@ ARG BASE="fpm"
 # Kimai branch/tag to run
 ARG KIMAI="main"
 # Timezone for images
-ARG TIMEZONE="Europe/Berlin"
+ARG TIMEZONE="Asia/Kolkata"
 
 ###########################
 # Shared tools
