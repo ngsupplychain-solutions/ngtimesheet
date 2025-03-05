@@ -45,7 +45,7 @@ final class UserWeekController extends AbstractUserReportController
     #[Route(path: '/week_export', name: 'report_user_week_export', methods: ['GET', 'POST'])]
     public function export(Request $request): Response
     {
-        $data = $this->getData($request, true);
+        $data = $this->getData($request, true, false);
         $content = $this->renderView('reporting/report_by_user_data.html.twig', $data);
 
         $reader = new Html();
@@ -62,7 +62,7 @@ final class UserWeekController extends AbstractUserReportController
         return $writer->getFileResponse($spreadsheet);
     }
 
-    private function getData(Request $request, bool $export = false): array
+    private function getData(Request $request, bool $export = false, bool $crFilter): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory($currentUser);
@@ -103,7 +103,7 @@ final class UserWeekController extends AbstractUserReportController
         $next = clone $start;
         $next->modify('+1 week');
 
-        $data = $this->prepareReport($start, $end, $selectedUser);
+        $data = $this->prepareReport($start, $end, $selectedUser, $crFilter);
 
         return [
             'decimal' => $values->isDecimal(),

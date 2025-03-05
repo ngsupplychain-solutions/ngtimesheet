@@ -47,13 +47,13 @@ abstract class AbstractUserReportController extends AbstractController
         return new DailyStatistic($begin, $end, $user);
     }
 
-    protected function prepareReport(DateTimeInterface $begin, DateTimeInterface $end, User $user): array
+    protected function prepareReport(DateTimeInterface $begin, DateTimeInterface $end, User $user, bool $crFilter): array
     {
         
         $startDate = $begin->format('Y-m-d');  // Convert to string
         $endDate = $end->format('Y-m-d');
 
-        $projectData = $this->projectRepository->getDailyProjectData($user->getId(), $startDate, $endDate);
+        $projectData = $this->projectRepository->getDailyProjectData($user->getId(), $startDate, $endDate, $crFilter);
 
         $transformedData = [];
         $dateWiseData = []; // Temporary array to group by date
@@ -108,9 +108,9 @@ abstract class AbstractUserReportController extends AbstractController
     }
 
     // Sheet 1
-    protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
+    protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
     {
-        $projectData = $this->projectRepository->getAllUsersProjectData($userIds, $startDate, $endDate, $project);
+        $projectData = $this->projectRepository->getAllUsersProjectData($userIds, $startDate, $endDate, $project, $crFilter);
 
         $reportData = [];
         
@@ -282,9 +282,9 @@ abstract class AbstractUserReportController extends AbstractController
     }
 
     // Sheet 2
-    protected function prepareAllUsersReportSheet2(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
+    protected function prepareAllUsersReportSheet2(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
     {
-        $projectData = $this->projectRepository->getAllUsersDailyProjectData($userIds, $startDate, $endDate, $project);
+        $projectData = $this->projectRepository->getAllUsersDailyProjectData($userIds, $startDate, $endDate, $project, $crFilter);
         $transformedData = [];
         $dateWiseData = [];
     

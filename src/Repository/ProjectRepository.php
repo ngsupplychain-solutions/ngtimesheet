@@ -516,8 +516,10 @@ class ProjectRepository extends EntityRepository
      * @param string $endDate
      * @return array
      */
-    public function getDailyProjectData(int $userId, string $startDate, string $endDate): array
-    {
+    public function getDailyProjectData(int $userId, string $startDate, string $endDate, bool $crFilter): array
+    {   
+        $Activity = ($crFilter) ? 0 : 'CR';
+
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
         $queryBuilder
@@ -529,21 +531,24 @@ class ProjectRepository extends EntityRepository
         ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')  // Join with the activities table
         ->where('t.user = :userId')
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
+        ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
         ->groupBy('DATE(t.start_time), t.day, p.name, u.username, t.jira_ids, t.description', 'a.name')
         ->orderBy('p.name')
         ->addOrderBy('DATE(t.start_time)')
         ->setParameters([
             'userId' => $userId,
             'startDate' => $startDate,
-            'endDate' => $endDate
+            'endDate' => $endDate,
+            'excludedActivities' => $Activity
         ]);
 
         return $queryBuilder->executeQuery()->fetchAllAssociative();
     }
 
     // Get Users month data sheet 1
-    public function getAllUsersProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
-    {
+    public function getAllUsersProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
+    {   
+        $Activity = ($crFilter) ? 0 : 'CR';
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
         $queryBuilder->select(
@@ -562,12 +567,14 @@ class ProjectRepository extends EntityRepository
         ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')
         ->where($queryBuilder->expr()->in('t.user', ':userIds'))
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
+        ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
         ->groupBy('u.id, DATE(t.start_time), t.location','a.name')
         ->orderBy('u.username')
         ->addOrderBy('DATE(t.start_time)')
         ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
         ->setParameter('startDate', $startDate)
-        ->setParameter('endDate', $endDate);
+        ->setParameter('endDate', $endDate)
+        ->setParameter('excludedActivities', $Activity);
 
         if (!empty($project)) {
             $queryBuilder
@@ -580,9 +587,10 @@ class ProjectRepository extends EntityRepository
     }
 
     //Get Users Month data sheet2
-    public function getAllUsersDailyProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null): array
+    public function getAllUsersDailyProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
     {
-        // $idsString = implode(',', $userIds);
+
+        $Activity = ($crFilter) ? 0 : 'CR';
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
         $queryBuilder->select(
@@ -601,11 +609,13 @@ class ProjectRepository extends EntityRepository
             ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')
             ->where($queryBuilder->expr()->in('t.user', ':userIds'))
             ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
+            ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
             ->groupBy('u.id, DATE(t.start_time), p.name, t.jira_ids, t.description, t.day, a.name')
             ->addOrderBy('DATE(t.start_time)')
             ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
+            ->setParameter('excludedActivities', $Activity)
             ->orderBy('u.username');
 
             if (!empty($project)) {

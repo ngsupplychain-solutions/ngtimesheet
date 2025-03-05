@@ -68,10 +68,10 @@ final class ReportUsersYearController extends AbstractUserReportController
     #[Route(path: '/year_export', name: 'report_yearly_users_export', methods: ['GET', 'POST'])]
     public function export(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): Response
     {
-        $dataFormat1 = $this->getData($request, $systemConfiguration, $statisticService, $userRepository);
+        $dataFormat1 = $this->getData($request, $systemConfiguration, $statisticService, $userRepository, false);
         $contentFormat1 = $this->renderView('reporting/report_user_list_monthly_export.html.twig', $dataFormat1);
 
-        $dataFormat2 = $this->getDataSheet2($request, $systemConfiguration, $statisticService, $userRepository);
+        $dataFormat2 = $this->getDataSheet2($request, $systemConfiguration, $statisticService, $userRepository, false);
         $contentFormat2 = $this->renderView('reporting/report_by_users_data_sheet2.html.twig', $dataFormat2);
 
 		$spreadsheet = new Spreadsheet();
@@ -111,7 +111,7 @@ final class ReportUsersYearController extends AbstractUserReportController
         return $writer->getFileResponse($spreadsheet);
     }
 
-    private function getData(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): array
+    private function getData(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository, bool $crFilter = true): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory();
@@ -170,7 +170,8 @@ final class ReportUsersYearController extends AbstractUserReportController
             $userIds,
             $start->format('Y-m-d'),
             $end->format('Y-m-d'),
-            $selectedProject
+            $selectedProject,
+            $crFilter
         );
 
         return [
@@ -187,7 +188,7 @@ final class ReportUsersYearController extends AbstractUserReportController
         ];
     }
 
-    private function getDataSheet2(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository): array
+    private function getDataSheet2(Request $request, SystemConfiguration $systemConfiguration, TimesheetStatisticService $statisticService, UserRepository $userRepository, bool $crFilter = true): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory();
@@ -247,7 +248,8 @@ final class ReportUsersYearController extends AbstractUserReportController
             $userIds,
             $start->format('Y-m-d'),
             $end->format('Y-m-d'),
-            $selectedProject
+            $selectedProject,
+            $crFilter
         );
         
         return [

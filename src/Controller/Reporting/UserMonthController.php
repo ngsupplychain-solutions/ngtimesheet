@@ -46,7 +46,7 @@ final class UserMonthController extends AbstractUserReportController
     #[Route(path: '/month_export', name: 'report_user_month_export', methods: ['GET', 'POST'])]
     public function export(Request $request): Response
     {
-        $data = $this->getData($request, true);
+        $data = $this->getData($request, true, false);
         $content = $this->renderView('reporting/report_by_user_data.html.twig', $data);
 
         $reader = new Html();
@@ -63,7 +63,7 @@ final class UserMonthController extends AbstractUserReportController
         return $writer->getFileResponse($spreadsheet);
     }
 
-    private function getData(Request $request, bool $export = false): array
+    private function getData(Request $request, bool $export = false, bool $crFilter = true): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory($currentUser);
@@ -110,7 +110,7 @@ final class UserMonthController extends AbstractUserReportController
         $nextMonth = clone $start;
         $nextMonth->modify('+1 month');
 
-        $data = $this->prepareReport($start, $end, $selectedUser);
+        $data = $this->prepareReport($start, $end, $selectedUser, $crFilter);
 
         return [
             'decimal' => $values->isDecimal(),
