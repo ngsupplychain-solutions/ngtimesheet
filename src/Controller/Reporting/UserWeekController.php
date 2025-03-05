@@ -62,7 +62,7 @@ final class UserWeekController extends AbstractUserReportController
         return $writer->getFileResponse($spreadsheet);
     }
 
-    private function getData(Request $request, bool $export = false, bool $crFilter): array
+    private function getData(Request $request, bool $export = false, bool $crFilter = true): array
     {
         $currentUser = $this->getUser();
         $dateTimeFactory = $this->getDateTimeFactory($currentUser);
