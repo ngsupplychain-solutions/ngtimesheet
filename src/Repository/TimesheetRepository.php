@@ -940,4 +940,24 @@ class TimesheetRepository extends EntityRepository
 
         return $query;
     }
+
+    //Find Missinge Uers for today entry
+    public function findUsersMissingTodayEntry(): array
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+
+        // Subquery: Get users who have logged time today
+        $subQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select('DISTINCT IDENTITY(t.user)')
+            ->from(Timesheet::class, 't')
+            ->where('DATE(t.begin) = :today'); // Ensure 'startTime' matches your table field
+
+        // Main query: Find users NOT in the subquery
+        $qb->select('u')
+            ->from(User::class, 'u')
+            ->where($qb->expr()->notIn('u.id', $subQuery->getDQL())) // Exclude those with timesheet
+            ->setParameter('today', (new \DateTime())->format('Y-m-d'));
+
+        return $qb->getQuery()->getResult();
+    }
 }
