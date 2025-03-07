@@ -44,7 +44,7 @@ final class UserYearController extends AbstractUserReportController
     #[Route(path: '/year_export', name: 'report_user_year_export', methods: ['GET', 'POST'])]
     public function export(Request $request, SystemConfiguration $systemConfiguration): Response
     {
-        $data = $this->getData($request, $systemConfiguration, true. false);
+        $data = $this->getData($request, $systemConfiguration, true);
         $content = $this->renderView('reporting/report_by_user_year_export.html.twig', $data);
 
         $reader = new Html();

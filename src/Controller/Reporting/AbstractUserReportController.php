@@ -181,6 +181,8 @@ abstract class AbstractUserReportController extends AbstractController
             'sick'          => 'S',
             'emergency'     => 'S',
             'sick/emergency'=> 'S',
+            'change request' => 'CR',
+            'changerequest' => 'CR'
         ];
 
         // Step 2: Prepare the final pivot report
@@ -210,7 +212,7 @@ abstract class AbstractUserReportController extends AbstractController
                             break;
                         }
                     }
-                    $row[$date] = $code; // either 0 or 'W','C','S','V'
+                    $row[$date] = $code; // either 0 or 'W','C','S','V','CR'
                 } else {
                     // just keep the numeric total
                     $row[$date] = $val;

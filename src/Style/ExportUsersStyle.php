@@ -90,6 +90,8 @@ class ExportUsersStyle
 			'sick'     => 'FFC000',  // Light orange
 			'sick/emergency' => 'FFC000',
 			'emergency' => 'FFC000',
+			'CR' => 'E52020',
+			'change request' => 'E52020',
 		];
 
 		// Determine the last row of data.

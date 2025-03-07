@@ -46,7 +46,7 @@ final class UserMonthController extends AbstractUserReportController
     #[Route(path: '/month_export', name: 'report_user_month_export', methods: ['GET', 'POST'])]
     public function export(Request $request): Response
     {
-        $data = $this->getData($request, true, false);
+        $data = $this->getData($request, true);
         $content = $this->renderView('reporting/report_by_user_data.html.twig', $data);
 
         $reader = new Html();

@@ -60,7 +60,7 @@ final class ReportUsersMonthController extends AbstractUserReportController
     {
         return $this->render(
             'reporting/report_user_list.html.twig',
-            $this->getData($request, $statisticService, $userRepository)
+            $this->getData($request, $statisticService, $userRepository, false)
         );
     }
 
@@ -70,7 +70,7 @@ final class ReportUsersMonthController extends AbstractUserReportController
         $dataFormat1 = $this->getData($request, $statisticService, $userRepository, false);
         $contentFormat1 = $this->renderView('reporting/report_user_list_export.html.twig', $dataFormat1);
 
-        $dataFormat2 = $this->getDataSheet2($request, $statisticService, $userRepository, false);
+        $dataFormat2 = $this->getDataSheet2($request, $statisticService, $userRepository);
         $contentFormat2 = $this->renderView('reporting/report_by_users_data_sheet2.html.twig', $dataFormat2);
 
 		$spreadsheet = new Spreadsheet();
