@@ -90,8 +90,7 @@ class ExportUsersStyle
 			'sick'     => 'FFC000',  // Light orange
 			'sick/emergency' => 'FFC000',
 			'emergency' => 'FFC000',
-			'CR' => 'E52020',
-			'change request' => 'E52020',
+			'cr' => 'E52020',
 		];
 
 		// Determine the last row of data.
@@ -99,17 +98,17 @@ class ExportUsersStyle
 
 		// Loop through each data row (assuming row 1 is header, so data starts at row 2)
 		for ($row = 2; $row <= $highestRow; $row++) {
-			// Get the "Component" from column C.
-			$component = $worksheet->getCell("C{$row}")->getValue();
+			// Get the "Component" from column B.
+			$component = $worksheet->getCell("B{$row}")->getValue();
 			$component = strtolower(trim($component));
 
 			// Get the "Duration" from column F and convert to a float.
-			$duration = (float)$worksheet->getCell("F{$row}")->getValue();
+			$duration = (float)$worksheet->getCell("G{$row}")->getValue();
 
 			// If the component is one of our keys and duration equals 0, apply the fill.
-			if (isset($componentColors[$component]) && $duration === 0.0) {
-				// Define the range to fill (adjust the range as needed; here we fill columns A to F).
-				$range = "A{$row}:H{$row}";
+			if ((isset($componentColors[$component]) && $duration === 0.0)||(isset($componentColors[$component]))) {
+				// Define the range to fill (adjust the range as needed; here we fill columns A to G).
+				$range = "A{$row}:G{$row}";
 				$worksheet->getStyle($range)->applyFromArray([
 					'fill' => [
 						'fillType'   => Fill::FILL_SOLID,
