@@ -177,6 +177,7 @@ abstract class AbstractUserReportController extends AbstractController
             'week off'      => 'W',
             'week-off'      => 'W',
             'comp-off'      => 'C',
+            'comp off'      => 'C',
             'vacation'      => 'V',
             'sick'          => 'S',
             'emergency'     => 'S',
@@ -221,6 +222,17 @@ abstract class AbstractUserReportController extends AbstractController
 
             $finalReport[] = $row;
         }
+
+        // Order by Teams and name of report
+            usort($finalReport, function($a, $b) {
+                // Compare team first
+                $teamComparison = strcmp($a['team'], $b['team']);
+                if ($teamComparison === 0) {
+                    // If teams are the same, compare names
+                    return strcmp($a['name'], $b['name']);
+                }
+                return $teamComparison;
+            });
         
         $this->appendTotalsRow($finalReport, $dates);
         return $finalReport;
