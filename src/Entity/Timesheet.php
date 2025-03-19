@@ -133,7 +133,7 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     /**
      * Jira ID for the timesheet entry.
      */
-    #[ORM\Column(name: 'jira_ids', type: 'string', length: 225, nullable: true)]
+    #[ORM\Column(name: 'jira_ids', type: 'string', length: 500, nullable: true)]
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private ?string $jiraId = null;
