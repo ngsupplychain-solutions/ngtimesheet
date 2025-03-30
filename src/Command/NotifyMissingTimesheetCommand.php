@@ -14,7 +14,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(
     name: 'app:notify-missing-timesheet',
-    description: 'Sends email notifications for missing timesheet entries.'
+    description: 'Send a email to the manager with the list of users who did not submit today’s timesheet.'
 )]
 class NotifyMissingTimesheetCommand extends Command
 {
@@ -35,31 +35,33 @@ class NotifyMissingTimesheetCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $thresholdTime = new \DateTime('today 09:32', new \DateTimeZone('Asia/Kolkata'));
-
-        if (new \DateTime() < $thresholdTime) {
-            $output->writeln('It is not yet time to send notifications.');
-            return Command::SUCCESS;
-        }
-
+        
         $missingEmployees = $this->timesheetRepository->findUsersMissingTodayEntry();
 
         if (!empty($missingEmployees)) {
-            $employeeNames = implode(', ', array_map(fn($emp) => $emp->getUsername(), $missingEmployees));
 
-            // ✅ Ensure we have recipients before sending
-            if (!empty($this->managerEmails)) {
-                $email = (new Email())
-                    ->from('miltonvino5@gmail.com')
-                    ->to(...$this->managerEmails)
-                    ->subject('Missing Timesheet Entries for Today')
-                    ->html("<p>The following employees have not submitted their timesheet entries today: <strong>$employeeNames</strong></p>");
-
-                $this->mailer->send($email);
-                $output->writeln(sprintf('Email sent to: %s', implode(', ', $this->managerEmails)));
-            } else {
-                $output->writeln('No manager emails configured.');
+            $userList = [];
+            foreach ($missingEmployees as $user) {
+                // Format: username (email)
+                $userList[] = sprintf('%s (%s)', $user->getAlias(), $user->getEmail());
             }
+
+            $userListString = implode('<br>', $userList);
+
+            $email = (new Email())
+                ->from('contactngsupplychain@gmail.com')
+                ->to(...$this->managerEmails)
+                ->subject('Daily Timesheet Submission Report')
+                ->html(sprintf(
+                    '<p>The following users did not submit their timesheet for today:</p><p>%s</p>',
+                    $userListString
+                ));
+
+            $this->mailer->send($email);
+            // $output->writeln(sprintf('Summary email sent to manager: %s', ...$this->managerEmail));
+            $output->writeln(sprintf('Summary email sent to manager(s): %s', implode(', ', $this->managerEmails)));
+
+            return Command::SUCCESS;
         } else {
             $output->writeln('No missing timesheet entries found.');
         }
