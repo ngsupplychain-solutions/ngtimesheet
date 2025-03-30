@@ -49,7 +49,7 @@ class NotifyMissingTimesheetCommand extends Command
             $userListString = implode('<br>', $userList);
 
             $email = (new Email())
-                ->from('contactngsupplychain@gmail.com')
+                ->from('no-reply@example.com')
                 ->to(...$this->managerEmails)
                 ->subject('Daily Timesheet Submission Report')
                 ->html(sprintf(
