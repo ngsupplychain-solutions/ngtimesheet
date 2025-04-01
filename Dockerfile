@@ -159,6 +159,7 @@ ARG TIMEZONE
 RUN apt-get update && \
     apt-get install -y \
         bash \
+        cron \
         haveged \
         libicu72 \
         libldap-common \

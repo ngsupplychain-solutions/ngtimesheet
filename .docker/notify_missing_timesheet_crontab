@@ -1,0 +1,8 @@
+# Run user notification command at 10:00 PM every day
+0 22 * * * cd /opt/kimai && /usr/local/bin/php bin/console app:notify-missing-timesheet-users >> /opt/kimai/var/log/notify-users.log 2>&1
+
+# Run manager notification command at 11:00 PM every day
+0 23 * * * cd /opt/kimai && /usr/local/bin/php bin/console app:notify-missing-timesheet >> /opt/kimai/var/log/notify-manager.log 2>&1
+
+# Optional: Log a heartbeat every minute (to help with debugging)
+*/10 * * * * echo "Cron is running" >> /var/log/cron.log 2>&1

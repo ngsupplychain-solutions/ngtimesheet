@@ -83,6 +83,22 @@ function prepareKimai() {
   echo "Kimai is ready"
 }
 
+function startCron() {
+  echo "Setting up cron jobs..."
+  # Copy the crontab file from /opt/kimai (make sure you have created /opt/kimai/crontab)
+  if [ -f /assets/notify_missing_timesheet_crontab ]; then
+      cp /assets/notify_missing_timesheet_crontab /etc/cron.d/notify_missing_timesheet_crontab
+      chmod 0644 /etc/cron.d/notify_missing_timesheet_crontab
+      crontab /etc/cron.d/notify_missing_timesheet_crontab
+      echo "Cron jobs installed."
+  else
+      echo "No crontab file found in /opt/kimai."
+  fi
+
+  # Start cron service
+  service cron start
+}
+
 function runServer() {
   # Just while I'm fixing things
   /opt/kimai/bin/console kimai:reload --env="$APP_ENV"
