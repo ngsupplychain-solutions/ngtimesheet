@@ -115,4 +115,5 @@ function runServer() {
 waitForDB
 handleStartup
 prepareKimai
+startCron
 runServer
