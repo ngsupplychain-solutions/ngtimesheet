@@ -3,6 +3,19 @@
 KIMAI=$(cat /opt/kimai/version.txt)
 echo $KIMAI
 
+# Set mail environment variables if they are not already defined
+if [ -z "$MAILER_URL" ]; then
+  export MAILER_URL="smtp://username:password@smtp.example.com:587"
+fi
+
+if [ -z "$MAILER_FROM" ]; then
+  export MAILER_FROM="no-reply@example.com"
+fi
+
+if [ -z "$MANAGER_EMAILS" ]; then
+  export MANAGER_EMAILS="manager@example.com"
+fi
+
 function waitForDB() {
   # Parse sql connection data
   DATABASE_USER=$(awk -F '[/:@]' '{print $4}' <<< "$DATABASE_URL")
