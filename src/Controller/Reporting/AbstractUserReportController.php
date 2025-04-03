@@ -66,6 +66,7 @@ abstract class AbstractUserReportController extends AbstractController
             $jiraIds = $entry['jira_ids'];  
             $description = $entry['description']; 
             $component = $entry['component'];
+            $username = $entry['username'];
 
             // Convert seconds to hours
             $hoursWorked = (int) ($secondsWorked / 3600);
@@ -74,7 +75,7 @@ abstract class AbstractUserReportController extends AbstractController
                 $dateWiseData[$workdate] = [
                     'workdate' => (new \DateTime($workdate))->format('j-M-Y'), // Format the date to '1-Jan-2025'
                     'weekday' => $weekday,
-                    'name' => $user->getUsername(),
+                    'name' => $username,
                     'hours' => 0,
                     'projects' => [],
                     'jira_ids' => [],

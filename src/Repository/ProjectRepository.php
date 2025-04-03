@@ -523,7 +523,7 @@ class ProjectRepository extends EntityRepository
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
         $queryBuilder
-        ->select('DATE(t.start_time) AS workdate', 't.day AS weekday', 'u.username', 'p.name AS project_name', 
+        ->select('DATE(t.start_time) AS workdate', 't.day AS weekday', 'u.alias AS username', 'p.name AS project_name', 
                     'SUM(t.duration) AS total_duration', 't.jira_ids', 't.description', 'a.name AS component')
         ->from('kimai2_timesheet', 't')
         ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
@@ -532,7 +532,7 @@ class ProjectRepository extends EntityRepository
         ->where('t.user = :userId')
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy('DATE(t.start_time), t.day, p.name, u.username, t.jira_ids, t.description', 'a.name')
+        ->groupBy('DATE(t.start_time), t.day, p.name, u.alias, t.jira_ids, t.description', 'a.name')
         ->orderBy('p.name')
         ->addOrderBy('DATE(t.start_time)')
         ->setParameters([
@@ -553,7 +553,7 @@ class ProjectRepository extends EntityRepository
 
         $queryBuilder->select(
             't.user AS user_id',
-            'u.username',
+            'u.alias AS username',
             'u.title AS role',
             'DATE(t.start_time) AS workdate',
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'on-site\' THEN t.duration ELSE 0 END) AS onsite_duration',
@@ -569,7 +569,7 @@ class ProjectRepository extends EntityRepository
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
         ->groupBy('u.id, DATE(t.start_time), t.location','a.name')
-        ->orderBy('u.username')
+        ->orderBy('u.alias')
         ->addOrderBy('DATE(t.start_time)')
         ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
         ->setParameter('startDate', $startDate)
@@ -594,7 +594,7 @@ class ProjectRepository extends EntityRepository
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
         $queryBuilder->select(
-                'u.username',
+                'u.alias AS username',
                 'DATE(t.start_time) AS workdate',
                 't.day AS weekday',
                 'p.name AS project_name',
@@ -616,7 +616,7 @@ class ProjectRepository extends EntityRepository
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
             ->setParameter('excludedActivities', $Activity)
-            ->orderBy('u.username');
+            ->orderBy('u.alias');
 
             if (!empty($project)) {
                 $queryBuilder
