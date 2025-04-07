@@ -168,8 +168,8 @@ final class ReportUsersMonthController extends AbstractUserReportController
 
         $reportData = $this->prepareAllUsersReport(
             $userIds,
-            $start->format('Y-m-d'),
-            $end->format('Y-m-d'),
+            $start->format('Y-m-d H:i:s.u'),
+            $end->format('Y-m-d H:i:s.u'),
             $selectedProject,
             $crFilter
         );
@@ -250,8 +250,8 @@ final class ReportUsersMonthController extends AbstractUserReportController
 
         $reportData = $this->prepareAllUsersReportSheet2(
             $userIds,
-            $start->format('Y-m-d'),
-            $end->format('Y-m-d'),
+            $start->format('Y-m-d H:i:s.u'),
+            $end->format('Y-m-d H:i:s.u'),
             $selectedProject,
             $crFilter
         );

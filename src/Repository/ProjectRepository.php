@@ -522,8 +522,11 @@ class ProjectRepository extends EntityRepository
 
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
+        $startDate = $this->convertToUTC($startDate);
+        $endDate = $this->convertToUTC($endDate);
+
         $queryBuilder
-        ->select('DATE(t.start_time) AS workdate', 't.day AS weekday', 'u.alias AS username', 'p.name AS project_name', 
+        ->select("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30')) AS workdate", 't.day AS weekday', 'u.alias AS username', 'p.name AS project_name', 
                     'SUM(t.duration) AS total_duration', 't.jira_ids', 't.description', 'a.name AS component')
         ->from('kimai2_timesheet', 't')
         ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
@@ -532,9 +535,9 @@ class ProjectRepository extends EntityRepository
         ->where('t.user = :userId')
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy('DATE(t.start_time), t.day, p.name, u.alias, t.jira_ids, t.description', 'a.name')
+        ->groupBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.day', 'p.name', 'u.alias', 't.jira_ids', 't.description', 'a.name')
         ->orderBy('p.name')
-        ->addOrderBy('DATE(t.start_time)')
+        ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
         ->setParameters([
             'userId' => $userId,
             'startDate' => $startDate,
@@ -551,11 +554,14 @@ class ProjectRepository extends EntityRepository
         $Activity = ($crFilter) ? 0 : 'CR';
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
+        $startDate = $this->convertToUTC($startDate);
+        $endDate = $this->convertToUTC($endDate);
+
         $queryBuilder->select(
             't.user AS user_id',
             'u.alias AS username',
             'u.title AS role',
-            'DATE(t.start_time) AS workdate',
+            "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30')) AS workdate",
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'on-site\' THEN t.duration ELSE 0 END) AS onsite_duration',
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'off-site\' THEN t.duration ELSE 0 END) AS offsite_duration',
             'SUM(t.duration) AS total_duration',
@@ -568,9 +574,9 @@ class ProjectRepository extends EntityRepository
         ->where($queryBuilder->expr()->in('t.user', ':userIds'))
         ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy('u.id, DATE(t.start_time), t.location','a.name')
+        ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.location','a.name, u.alias, u.title')
         ->orderBy('u.alias')
-        ->addOrderBy('DATE(t.start_time)')
+        ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
         ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
         ->setParameter('startDate', $startDate)
         ->setParameter('endDate', $endDate)
@@ -593,9 +599,12 @@ class ProjectRepository extends EntityRepository
         $Activity = ($crFilter) ? 0 : 'CR';
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
 
+        $startDate = $this->convertToUTC($startDate);
+        $endDate = $this->convertToUTC($endDate);
+
         $queryBuilder->select(
                 'u.alias AS username',
-                'DATE(t.start_time) AS workdate',
+                "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30')) AS workdate",
                 't.day AS weekday',
                 'p.name AS project_name',
                 'SUM(t.duration) AS total_duration',
@@ -610,8 +619,8 @@ class ProjectRepository extends EntityRepository
             ->where($queryBuilder->expr()->in('t.user', ':userIds'))
             ->andWhere('t.start_time BETWEEN :startDate AND DATE_ADD(:endDate, INTERVAL 1 DAY)')
             ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-            ->groupBy('u.id, DATE(t.start_time), p.name, t.jira_ids, t.description, t.day, a.name')
-            ->addOrderBy('DATE(t.start_time)')
+            ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 'p.name', 't.jira_ids', 't.description', 't.day', 'a.name')
+            ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
             ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
@@ -650,6 +659,18 @@ class ProjectRepository extends EntityRepository
 
         return $queryBuilder->executeQuery()->fetchAllAssociative();
      
+    }
+
+    private function convertToUTC($date)
+    {
+        // Create a DateTime object from the input date, assuming it's in Asia/Kolkata (IST)
+        $dateTime = new \DateTime($date, new \DateTimeZone('Asia/Kolkata'));
+
+        // Convert the date to UTC
+        $dateTime->setTimezone(new \DateTimeZone('UTC'));
+
+        // Return the converted date as a string in the correct format for MySQL
+        return $dateTime->format('Y-m-d H:i:s');
     }
 
 }

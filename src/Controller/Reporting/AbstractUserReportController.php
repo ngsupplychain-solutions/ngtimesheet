@@ -50,8 +50,8 @@ abstract class AbstractUserReportController extends AbstractController
     protected function prepareReport(DateTimeInterface $begin, DateTimeInterface $end, User $user, bool $crFilter): array
     {
         
-        $startDate = $begin->format('Y-m-d');  // Convert to string
-        $endDate = $end->format('Y-m-d');
+        $startDate = $begin->format('Y-m-d H:i:s.u');  // Convert to string
+        $endDate = $end->format('Y-m-d H:i:s.u');
 
         $projectData = $this->projectRepository->getDailyProjectData($user->getId(), $startDate, $endDate, $crFilter);
 
