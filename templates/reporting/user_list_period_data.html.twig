@@ -53,9 +53,9 @@
                 <td>{{ row.name }}</td>
                 <td>{{ row.role }}</td>
                 <td>{{ row.team }}</td>
-                <td>{{ row.total_work|number_format(0) }}</td>
-                <td>{{ row.offsite|number_format(0) }}</td>
-                <td>{{ row.onsite|number_format(0) }}</td>
+                <td>{{ row.total_work }}</td>
+                <td>{{ row.offsite }}</td>
+                <td>{{ row.onsite }}</td>
                 {% for date in all_dates %}
                     <td>
                         {% if row[date] is same as(0) %}
