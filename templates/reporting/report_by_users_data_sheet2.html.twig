@@ -17,12 +17,12 @@
         {% for entry in stats %}
             <tr>
                 <td>{{ entry.name }}</td>
-                <td>{{ entry.components }}</td>
+                <td>{{ entry.component }}</td>
                 <td>{{ entry.weekday }}</td>
                 <td>{{ entry.workdate }}</td>
                 <td>{{ entry.hours }}</td>
                 <td>{{ entry.jira_ids }}</td>
-                <td>{{ entry.descriptions }}</td>
+                <td>{{ entry.description }}</td>
             </tr>
         {% endfor %}
     </tbody>
