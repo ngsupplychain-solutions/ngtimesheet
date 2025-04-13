@@ -32,6 +32,7 @@ final class Version20240926111739 extends AbstractMigration
         $this->addSql('ALTER TABLE kimai2_timesheet ADD day VARCHAR(20) DEFAULT NULL');
         $this->addSql('ALTER TABLE kimai2_timesheet ADD location VARCHAR(20) DEFAULT NULL');
         $this->addSql('ALTER TABLE kimai2_timesheet ADD jira_ids TEXT DEFAULT NULL');
+        $this->addSql('ALTER TABLE kimai2_timesheet ADD is_submitted TINYINT(1) DEFAULT 0 NOT NULL');
     }
 
     public function down(Schema $schema): void
