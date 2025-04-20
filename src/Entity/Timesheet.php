@@ -212,13 +212,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[Serializer\Expose]
     #[Serializer\Groups(['Default'])]
     private bool $billable = true;
-
-    #[ORM\Column(name: 'is_submitted', type: 'boolean', nullable: false, options: ['default' => false])]
-    #[Assert\NotNull]
-    #[Serializer\Expose]
-    #[Serializer\Groups(['Default'])]
-    private bool $submitted = false;
-    
     /**
      * Internal property used to determine whether the billable field should be calculated automatically.
      */
@@ -548,17 +541,6 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     {
         $this->exported = $exported;
 
-        return $this;
-    }
-
-    public function isSubmitted(): bool
-    {
-        return $this->submitted;
-    }
-
-    public function setSubmitted(bool $submitted): Timesheet
-    {
-        $this->submitted = $submitted;
         return $this;
     }
 

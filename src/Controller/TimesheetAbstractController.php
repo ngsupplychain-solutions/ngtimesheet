@@ -144,14 +144,6 @@ abstract class TimesheetAbstractController extends AbstractController
 
     protected function edit(Timesheet $entry, Request $request): Response
     {
-        // Block non‑admins from editing a submitted timesheet
-        if ($entry->isSubmitted() && !$this->isGranted('ROLE_ADMIN')) {
-            $this->addFlash('warning', 'Submitted timesheets cannot be edited.');
-            return $this->redirectToRoute($this->getTimesheetRoute(), [
-                'page' => $request->get('page', 1),
-            ]);
-        }
-
         $event = new TimesheetMetaDefinitionEvent($entry);
         $this->dispatcher->dispatch($event);
 
@@ -162,24 +154,8 @@ abstract class TimesheetAbstractController extends AbstractController
 
         if ($editForm->isSubmitted() && $editForm->isValid()) {
             try {
-
-                //  Detect which button was clicked (default = save)
-                $action = $request->request->get('action', 'save');
-
-                // Update the submitted flag
-                if ($action === 'submit') {
-                    $entry->setSubmitted(true);
-                } else {
-                    // saving a draft explicitly clears the flag
-                    $entry->setSubmitted(false);
-                }
-
                 $this->service->updateTimesheet($entry);
-                $this->flashSuccess(
-                    $entry->isSubmitted()
-                        ? 'action.submit.success'
-                        : 'action.update.success'
-                );
+                $this->flashSuccess('action.update.success');
 
                 return $this->redirectToRoute($this->getTimesheetRoute(), ['page' => $request->get('page', 1)]);
             } catch (\Exception $ex) {
@@ -198,41 +174,20 @@ abstract class TimesheetAbstractController extends AbstractController
 
     protected function create(Request $request): Response
     {
-        //Create or load the entry
         $entry = $this->service->createNewTimesheet($this->getUser(), $request);
 
-        // If editing an existing, submitted timesheet → block non‑admins
-        if ($entry->getId() && $entry->isSubmitted() && !$this->isGranted('ROLE_ADMIN')) {
-            $this->addFlash('warning', 'Submitted timesheets cannot be edited.');
-            return $this->redirectToRoute($this->getTimesheetRoute());
-        }
-
-        //  Pre‑populate GET parameters
-        $preForm = $this->createFormForGetRequest(
-            TimesheetPreCreateForm::class,
-            $entry,
-            ['include_user' => $this->includeUserInForms('create')]
-        );
+        $preForm = $this->createFormForGetRequest(TimesheetPreCreateForm::class, $entry, [
+            'include_user' => $this->includeUserInForms('create'),
+        ]);
         $preForm->submit($request->query->all(), false);
 
-        // Build & handle the main form
         $createForm = $this->getCreateForm($entry);
         $createForm->handleRequest($request);
 
         if ($createForm->isSubmitted() && $createForm->isValid()) {
             try {
-                //  Which button was clicked? default to "save"
-                $action = $request->request->get('action', 'save');
-
-                if ($action === 'submit') {
-                    $entry->setSubmitted(true);
-                } else {
-                    $entry->setSubmitted(false);
-                }
-
-                // Persist with the new submitted flag
                 $this->service->saveNewTimesheet($entry);
-                $this->flashSuccess($entry->isSubmitted() ? 'action.submit.success' : 'action.save.success');
+                $this->flashSuccess('action.update.success');
 
                 return $this->redirectToRoute($this->getTimesheetRoute());
             } catch (\Exception $ex) {
@@ -240,13 +195,12 @@ abstract class TimesheetAbstractController extends AbstractController
             }
         }
 
-        // Render the form
         return $this->render('timesheet/edit.html.twig', [
             'page_setup' => $this->createPageSetup(),
             'route_back' => $this->getTimesheetRoute(),
-            'timesheet'  => $entry,
-            'form'       => $createForm->createView(),
-            'template'   => $this->getTrackingMode()->getEditTemplate(),
+            'timesheet' => $entry,
+            'form' => $createForm->createView(),
+            'template' => $this->getTrackingMode()->getEditTemplate(),
         ]);
     }
 

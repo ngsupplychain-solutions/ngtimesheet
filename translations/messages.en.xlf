@@ -454,11 +454,6 @@
         <source>action.save</source>
         <target>Save</target>
       </trans-unit>
-        <!-- Submit button -->
-      <trans-unit id="a1B2c3D" resname="action.submit">
-        <source>action.submit</source>
-        <target>Submit</target>
-      </trans-unit>
       <trans-unit id="tKZKI2Z" resname="action.reset">
         <source>action.reset</source>
         <target>Reset</target>

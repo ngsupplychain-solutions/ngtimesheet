@@ -28,11 +28,7 @@
     </div>
     <div class="card-footer">
         {% block submit_button %}
-        
-            <button type="submit" name="action" value="save" data-loading-text="{{ 'action.save'|trans }}…" id="form_save" class="btn btn-primary"> {{ 'action.save'|trans }}</button>
-			
-			<button type="submit" name="action" value="submit" data-loading-text="{{ 'action.submit'|trans }}…" id="form_submit" class="btn btn-success">{{ 'action.submit'|trans }}</button>
-            
+            <input type="submit" data-loading-text="{{ (submit_button|default('action.save'))|trans }}…" value="{{ (submit_button|default('action.save'))|trans }}" class="btn btn-primary" />
         {% endblock %}
         {% if _back is not same as (false) %}
             <a href="{{ _back }}" class="btn btn-link">{{ 'back'|trans }}</a>
