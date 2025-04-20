@@ -9,6 +9,9 @@ services:
     environment:
       - ADMINMAIL=${ADMIN_EMAIL}
       - ADMINPASS=${ADMIN_PASSWORD}
+      - MAILER_FROM=${MAILER_FROM}
+      - MAILER_URL=${MAILER_URL}
+      - MANAGER_EMAILS=${MANAGER_EMAILS}
       - "DATABASE_URL=mysql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}?charset=utf8mb4&serverVersion=8.3.0"
     restart: unless-stopped
 
