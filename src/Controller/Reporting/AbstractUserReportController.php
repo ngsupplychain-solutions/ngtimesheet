@@ -68,7 +68,8 @@ abstract class AbstractUserReportController extends AbstractController
             $username = $entry['username'];
 
             // Convert seconds to hours
-            $hoursWorked = ($secondsWorked / 3600);
+            // $hoursWorked = ($secondsWorked / 3600);
+            $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
 
             // Transform grouped data to the final format
             $transformedData[] = [
@@ -108,9 +109,21 @@ abstract class AbstractUserReportController extends AbstractController
             $username = $entry['username'];
             $role = $entry['role'] ?? 'N/A';
             $workdate = $entry['workdate'];
-            $onsiteDuration = ($entry['onsite_duration']/3600);
-            $offsiteDuration = ($entry['offsite_duration']/3600);
-            $totalDuration = ($entry['total_duration']/3600);
+            $onsiteDuration  = floatval(sprintf(
+                '%d.%02d',
+                floor($entry['onsite_duration']  / 3600),
+                floor(($entry['onsite_duration']  % 3600) / 60)
+            ));
+            $offsiteDuration = floatval(sprintf(
+                '%d.%02d',
+                floor($entry['offsite_duration'] / 3600),
+                floor(($entry['offsite_duration'] % 3600) / 60)
+            ));
+            $totalDuration   = floatval(sprintf(
+                '%d.%02d',
+                floor($entry['total_duration']   / 3600),
+                floor(($entry['total_duration']   % 3600) / 60)
+            ));
             $activityName = strtolower(trim($entry['activity_name'] ?? ''));
 
             // Assume $entry contains a user_id field. If not, you might need to add it in your query.
@@ -293,7 +306,8 @@ abstract class AbstractUserReportController extends AbstractController
             $component = $entry['component'];
     
             // Convert seconds to hours.
-            $hoursWorked = $secondsWorked / 3600;
+            // $hoursWorked = $secondsWorked / 3600;
+            $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
             
             $transformedData[] = [
                 'name' => $username,
