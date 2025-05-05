@@ -195,7 +195,7 @@ abstract class AbstractUserReportController extends AbstractController
             // For each day, if total is 0, check if the day has any 'leave' type activity
             foreach ($dates as $date) {
                 $val = $userRow['daily'][$date];
-                if ($val === 0) {
+                if ((float)$val === 0.0) {
                     // see if any activity is in leaveMap
                     $dayActivities = $userRow['activities'][$date] ?? [];
                     // default code is 0 if no recognized leave found
