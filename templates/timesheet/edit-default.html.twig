@@ -52,6 +52,11 @@
             {% if form.project is defined %}
                 {{ form_row(form.project, {'row_attr': {'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.project.vars.name}}) }}
             {% endif %}
+
+             {% if form.team is defined %}
+                {{ form_row(form.team, {'row_attr': { 'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.team.vars.name } }) }}
+            {% endif %}
+            
             {% if form.activity is defined %}
                 {{ form_row(form.activity, {'row_attr': {'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.activity.vars.name}}) }}
             {% endif %}

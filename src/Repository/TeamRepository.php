@@ -270,4 +270,21 @@ class TeamRepository extends EntityRepository
 
         return $query;
     }
+
+    /** By VK
+     * @param User $user
+     * @return Team[]
+     */
+    public function findByUser(User $user): array
+    {
+        // 't' is the alias for Team
+        // 'm' is the alias for TeamMember
+        return $this->createQueryBuilder('t')
+            ->innerJoin('t.members', 'm')    // join to the TeamMember pivot
+            ->andWhere('m.user = :user')     // filter by the given User
+            ->setParameter('user', $user)    // bind the User object (Doctrine will use its ID)
+            ->orderBy('t.name', 'ASC')       // optional: sort by team name
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -147,6 +147,10 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[Serializer\Groups(['Default'])]
     private ?string $location = null;
 
+    #[ORM\ManyToOne(targetEntity: Team::class)]
+    #[ORM\JoinColumn(name: 'team_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Team $team = null;
+
     /**
      * @internal for storing the localized state of dates (see $timezone)
      */
@@ -375,6 +379,17 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     public function setCreatedAt(\DateTimeInterface $createdAt): self
     {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getTeam(): ?Team
+    {
+        return $this->team;
+    }
+
+    public function setTeam(?Team $team): self
+    {
+        $this->team = $team;
         return $this;
     }
 

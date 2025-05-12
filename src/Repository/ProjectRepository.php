@@ -549,7 +549,7 @@ class ProjectRepository extends EntityRepository
     }
 
     // Get Users month data sheet 1
-    public function getAllUsersProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
+    public function getAllUsersProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, ?Int $team = null, bool $crFilter): array
     {   
         $Activity = ($crFilter) ? 0 : 'CR';
         $queryBuilder = $this->_em->getConnection()->createQueryBuilder();
@@ -565,16 +565,18 @@ class ProjectRepository extends EntityRepository
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'on-site\' THEN t.duration ELSE 0 END) AS onsite_duration',
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'off-site\' THEN t.duration ELSE 0 END) AS offsite_duration',
             'SUM(t.duration) AS total_duration',
-            'a.name AS activity_name'
+            'a.name AS activity_name',
+            'tm.name AS team_name'
         )
         ->from('kimai2_timesheet', 't')
         ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
         ->join('t', 'kimai2_projects', 'p', 'p.id = t.project_id')
         ->join('t', 'kimai2_activities', 'a', 'a.id = t.activity_id')
+        ->leftJoin('t', 'kimai2_teams',  'tm', 'tm.id = t.team_id') 
         ->where($queryBuilder->expr()->in('t.user', ':userIds'))
         ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.location','a.name, u.alias, u.title')
+        ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.location','a.name, u.alias, u.title, tm.name')
         ->orderBy('u.alias')
         ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
         ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
@@ -587,13 +589,19 @@ class ProjectRepository extends EntityRepository
                 ->andWhere('t.project_id = :projectId')
                 ->setParameter('projectId', $project->getId());
         }
+        
+        if (!empty($team)){
+            $queryBuilder
+                ->andWhere('t.team_id = :teamId')
+                ->setParameter('teamId', $team);
+        }
 
         return $queryBuilder->executeQuery()->fetchAllAssociative();
        
     }
 
     //Get Users Month data sheet2
-    public function getAllUsersDailyProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
+    public function getAllUsersDailyProjectData(array $userIds, string $startDate, string $endDate, ?Project $project = null, ?Int $team = null, bool $crFilter): array
     {
 
         $Activity = ($crFilter) ? 0 : 'CR';
@@ -633,6 +641,12 @@ class ProjectRepository extends EntityRepository
                     ->setParameter('projectId', $project->getId());
             }
             
+            if (!empty($team)) {
+                $queryBuilder
+                    ->andWhere('t.team_id = :teamId')
+                    ->setParameter('teamId', $team);
+            }
+
         return $queryBuilder->executeQuery()->fetchAllAssociative();
        
     }

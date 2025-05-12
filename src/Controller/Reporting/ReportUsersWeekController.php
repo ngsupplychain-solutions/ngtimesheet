@@ -169,6 +169,7 @@ final class ReportUsersWeekController extends AbstractUserReportController
             $start->format('Y-m-d H:i:s.u'),
             $end->format('Y-m-d H:i:s.u'),
             $selectedProject,
+            $teamId > 0 ? $teamId : null,
             $crFilter
         );
 
@@ -249,6 +250,7 @@ final class ReportUsersWeekController extends AbstractUserReportController
             $start->format('Y-m-d H:i:s.u'),
             $end->format('Y-m-d H:i:s.u'),
             $selectedProject,
+            $teamId > 0 ? $teamId : null,
             $crFilter
         );
         

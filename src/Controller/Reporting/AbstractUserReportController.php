@@ -18,7 +18,7 @@ use App\Repository\ActivityRepository;
 use App\Repository\ProjectRepository;
 use App\Timesheet\TimesheetStatisticService;
 use DateTimeInterface;
-
+use App\Entity\Team;
 use App\Entity\Project;
 
 abstract class AbstractUserReportController extends AbstractController
@@ -68,7 +68,6 @@ abstract class AbstractUserReportController extends AbstractController
             $username = $entry['username'];
 
             // Convert seconds to hours
-            // $hoursWorked = ($secondsWorked / 3600);
             $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
 
             // Transform grouped data to the final format
@@ -88,10 +87,10 @@ abstract class AbstractUserReportController extends AbstractController
         return $transformedData;
     }
 
-    // Sheet 1
-    protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
+    protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null, ?Int $team = null, bool $crFilter): array
     {
-        $projectData = $this->projectRepository->getAllUsersProjectData($userIds, $startDate, $endDate, $project, $crFilter);
+
+        $projectData = $this->projectRepository->getAllUsersProjectData($userIds, $startDate, $endDate, $project, $team, $crFilter);
 
         $reportData = [];
         
@@ -104,64 +103,50 @@ abstract class AbstractUserReportController extends AbstractController
             $current->modify('+1 day');
         }
 
-        // Step 1: Group data by user
+        // Step 1: Group data by user + Team
         foreach ($projectData as $entry) {
             $username = $entry['username'];
             $role = $entry['role'] ?? 'N/A';
             $workdate = $entry['workdate'];
-            $onsiteDuration  = floatval(sprintf(
-                '%d.%02d',
-                floor($entry['onsite_duration']  / 3600),
-                floor(($entry['onsite_duration']  % 3600) / 60)
-            ));
-            $offsiteDuration = floatval(sprintf(
-                '%d.%02d',
-                floor($entry['offsite_duration'] / 3600),
-                floor(($entry['offsite_duration'] % 3600) / 60)
-            ));
-            $totalDuration   = floatval(sprintf(
-                '%d.%02d',
-                floor($entry['total_duration']   / 3600),
-                floor(($entry['total_duration']   % 3600) / 60)
-            ));
+            $userId   = $entry['user_id'] ?? null;
+            
+            // Format durations as float hours with decimals
+            $onsiteDuration  = floatval(sprintf('%d.%02d', floor($entry['onsite_duration'] / 3600), floor(($entry['onsite_duration'] % 3600) / 60)));
+            $offsiteDuration = floatval(sprintf('%d.%02d', floor($entry['offsite_duration'] / 3600), floor(($entry['offsite_duration'] % 3600) / 60)));
+            $totalDuration   = floatval(sprintf('%d.%02d', floor($entry['total_duration'] / 3600), floor(($entry['total_duration'] % 3600) / 60)));
+            
             $activityName = strtolower(trim($entry['activity_name'] ?? ''));
 
-            // Assume $entry contains a user_id field. If not, you might need to add it in your query.
-            $userId = $entry['user_id'] ?? null;
-
-            if (!isset($reportData[$username])) {
-                $teamNames = [];
-                if ($userId !== null) {
-                    $teams = $this->projectRepository->getTeamsForUser($userId, $project ? $project->getId() : null);
-                    $teamNames = array_map(function ($team) {
-                        return $team['name'];
-                    }, $teams);
-                }
+            // Prefer team name from DB, fallback to user lookup
+            $team = $entry['team_name'] ?? null;
+            if ($team === null && $userId !== null) {
+                $teams = $this->projectRepository->getTeamsForUser($userId, $project ? $project->getId() : null);
+                $teamNames = array_map(fn($t) => $t['name'], $teams);
                 $team = !empty($teamNames) ? implode(', ', $teamNames) : 'N/A';
+            }
+            $teamKey = $team ?: 'N/A';
 
+            $reportKey = $username . '|' . $teamKey;
+
+            if (!isset($reportData[$reportKey])) {
                  // Initialize daily arrays
-                $reportData[$username] = [
+                $reportData[$reportKey] = [
                     'name'       => $username,
                     'role'       => $role,
-                    'team'       => $team,
+                    'team'       => $teamKey,
                     'total_work' => 0,
                     'onsite'     => 0,
                     'offsite'    => 0,
                     'daily'      => array_fill_keys($dates, 0),
-                     // store all activity names for each day
                     'activities' => array_fill_keys($dates, [])
                 ];
             }
             // Accumulate totals
-            $reportData[$username]['total_work'] += $totalDuration;
-            $reportData[$username]['onsite'] += $onsiteDuration;
-            $reportData[$username]['offsite'] += $offsiteDuration;
-
-             // Accumulate daily total
-            $reportData[$username]['daily'][$workdate] += $totalDuration;
-
-            // Save the activity name for that day
-            $reportData[$username]['activities'][$workdate][] = $activityName;
+            $reportData[$reportKey]['total_work'] += $totalDuration;
+            $reportData[$reportKey]['onsite'] += $onsiteDuration;
+            $reportData[$reportKey]['offsite'] += $offsiteDuration;
+            $reportData[$reportKey]['daily'][$workdate] += $totalDuration;
+            $reportData[$reportKey]['activities'][$workdate][] = $activityName;
         }
 
         // Step 2: Build final pivot and check for 'leave' codes
@@ -216,16 +201,11 @@ abstract class AbstractUserReportController extends AbstractController
             $finalReport[] = $row;
         }
 
-        // Order by Teams and name of report
-            usort($finalReport, function($a, $b) {
-                // Compare team first
-                $teamComparison = strcmp($a['team'], $b['team']);
-                if ($teamComparison === 0) {
-                    // If teams are the same, compare names
-                    return strcmp($a['name'], $b['name']);
-                }
-                return $teamComparison;
-            });
+        // Step 4: sort by team name then username
+        usort($finalReport, function ($a, $b) {
+            $teamCmp = strcmp($a['team'], $b['team']);
+            return $teamCmp === 0 ? strcmp($a['name'], $b['name']) : $teamCmp;
+        });
         
         $this->appendTotalsRow($finalReport, $dates);
         return $finalReport;
@@ -259,12 +239,6 @@ abstract class AbstractUserReportController extends AbstractController
 
         // 2) Accumulate sums
         foreach ($finalReport as $row) {
-
-            // Skip if this row is already a totals row (if that's possible)
-            // if ($row['name'] === 'Totals') {
-            //     continue;
-            // }
-
             // sum monthly columns if numeric
             if (isset($row['total_work']) && is_numeric($row['total_work'])) {
                 $totalsRow['total_work'] += $row['total_work'];
@@ -289,9 +263,9 @@ abstract class AbstractUserReportController extends AbstractController
     }
 
     // Sheet 2
-    protected function prepareAllUsersReportSheet2(array $userIds, string $startDate, string $endDate, ?Project $project = null, bool $crFilter): array
+    protected function prepareAllUsersReportSheet2(array $userIds, string $startDate, string $endDate, ?Project $project = null, ?Int $team = null, bool $crFilter): array
     {
-        $projectData = $this->projectRepository->getAllUsersDailyProjectData($userIds, $startDate, $endDate, $project, $crFilter);
+        $projectData = $this->projectRepository->getAllUsersDailyProjectData($userIds, $startDate, $endDate, $project, $team, $crFilter);
         $transformedData = [];
         $dateWiseData = [];
     
@@ -306,7 +280,6 @@ abstract class AbstractUserReportController extends AbstractController
             $component = $entry['component'];
     
             // Convert seconds to hours.
-            // $hoursWorked = $secondsWorked / 3600;
             $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
             
             $transformedData[] = [
@@ -323,6 +296,5 @@ abstract class AbstractUserReportController extends AbstractController
         }
     
         return $transformedData;
-    }
-	
+    }	
 }

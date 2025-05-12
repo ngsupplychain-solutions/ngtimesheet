@@ -12,6 +12,7 @@ namespace App\Form;
 use App\Configuration\SystemConfiguration;
 use App\Entity\Customer;
 use App\Entity\Timesheet;
+use App\Entity\Team;
 use App\Form\Type\CustomerType;
 use App\Form\Type\DatePickerType;
 use App\Form\Type\DescriptionType;
@@ -25,7 +26,9 @@ use App\Form\Type\TimesheetBillableType;
 use App\Form\Type\UserType;
 use App\Form\Type\YesNoType;
 use App\Repository\CustomerRepository;
+use App\Repository\TeamRepository;
 use App\Repository\Query\CustomerFormTypeQuery;
+use App\Repository\Query\TeamQuery;
 use App\Timesheet\Calculator\BillableCalculator;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\CallbackTransformer;
@@ -36,6 +39,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 /**
  * Defines the form used to manipulate Timesheet entries.
@@ -43,9 +48,14 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 class TimesheetEditForm extends AbstractType
 {
     use FormTrait;
+    private TeamRepository $teamRepository;
+    private Security $security;
 
-    public function __construct(private CustomerRepository $customers, private SystemConfiguration $systemConfiguration)
+    public function __construct(private CustomerRepository $customers, private SystemConfiguration $systemConfiguration,
+                                TeamRepository $teamRepository, Security $security)
     {
+        $this->teamRepository = $teamRepository;
+        $this->security       = $security;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -159,6 +169,37 @@ class TimesheetEditForm extends AbstractType
              'empty_data'  => 'off-site',
             'required' => false,
         ]);
+
+        // ---------------Bind Teams Id in the Entry Begin---------------------------
+        // 1. Get the currently logged-in user
+        $user = $this->security->getUser();
+        $isAdmin = $this->security->isGranted('ROLE_ADMIN') || $this->security->isGranted('ROLE_SUPER_ADMIN');
+
+        // 2. Fetch only the teams they belong to (returns [] if none) for ADMIN/SUPER_ADMIN retrun all teams
+        $userTeams = [];
+
+        if ($user !== null) {
+            if ($isAdmin) {
+                // Admins get all teams via query object
+                $query = new TeamQuery();
+                $userTeams = $this->teamRepository->getTeamsForQuery($query);
+            } else {
+                // Normal users get only their teams
+                $userTeams = $this->teamRepository->findByUser($user);
+            }
+        }
+
+        // 3. Add the "team" dropdown (nullable, placeholder if empty)
+        $builder->add('team', EntityType::class, [
+            'class'         => Team::class,
+            'choices'       => $userTeams,
+            'choice_label'  => 'name',
+            'placeholder'   => '— no team —',
+            'required'      => false,
+            'label'         => 'Team',
+        ]);
+
+        // ---------------Bind Teams Id in the Entry End-----------------------------
 
         $builder->add('tags', TagsType::class, ['required' => false]);
         $this->addRates($builder, $currency, $options);
