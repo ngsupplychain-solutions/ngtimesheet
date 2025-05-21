@@ -142,12 +142,20 @@ abstract class AbstractUserReportController extends AbstractController
                 ];
             }
             // Accumulate totals
-            $reportData[$reportKey]['total_work'] += $totalDuration;
-            $reportData[$reportKey]['onsite'] += $onsiteDuration;
-            $reportData[$reportKey]['offsite'] += $offsiteDuration;
+            $reportData[$reportKey]['total_work'] += $entry['total_duration'];
+            $reportData[$reportKey]['onsite'] += $entry['onsite_duration'];
+            $reportData[$reportKey]['offsite'] += $entry['offsite_duration'];
             $reportData[$reportKey]['daily'][$workdate] += $totalDuration;
             $reportData[$reportKey]['activities'][$workdate][] = $activityName;
         }
+
+        // Converting Min_totals in hours & Min
+        foreach ($reportData as $reportKey => $data){
+            $reportData[$reportKey]['total_work'] = floatval(sprintf('%d.%02d', floor($data['total_work'] / 3600), floor(($data['total_work'] % 3600) / 60)));
+            $reportData[$reportKey]['onsite'] = floatval(sprintf('%d.%02d', floor($data['onsite'] / 3600), floor(($data['onsite'] % 3600) / 60)));
+            $reportData[$reportKey]['offsite'] = floatval(sprintf('%d.%02d', floor($data['offsite'] / 3600), floor(($data['offsite'] % 3600) / 60)));
+        }
+
 
         // Step 2: Build final pivot and check for 'leave' codes
         // define the short codes for your known activities
@@ -217,48 +225,46 @@ abstract class AbstractUserReportController extends AbstractController
      */
     private function appendTotalsRow(array &$finalReport, array $dates): void
     {
-        // If no data, do nothing
         if (empty($finalReport)) {
             return;
         }
 
-        // 1) Create an empty totals row
-        $totalsRow = [
-            'name'       => 'Totals',
-            'role'       => '',
-            'team'       => '',
+        // Accumulators in minutes
+        $sumMinutes = [
             'total_work' => 0,
             'onsite'     => 0,
             'offsite'    => 0,
         ];
+        // one per date
+        $dateMinutes = array_fill_keys($dates, 0);
 
-        // Initialize each date column
-        foreach ($dates as $d) {
-            $totalsRow[$d] = 0;
-        }
-
-        // 2) Accumulate sums
+        // 1) convert each row's floats to minutes, and accumulate
         foreach ($finalReport as $row) {
-            // sum monthly columns if numeric
-            if (isset($row['total_work']) && is_numeric($row['total_work'])) {
-                $totalsRow['total_work'] += $row['total_work'];
+            foreach (['total_work','onsite','offsite'] as $col) {
+                if (isset($row[$col]) && is_numeric($row[$col])) {
+                    $sumMinutes[$col] += $this->toMinutes($row[$col]);
+                }
             }
-            if (isset($row['onsite']) && is_numeric($row['onsite'])) {
-                $totalsRow['onsite'] += $row['onsite'];
-            }
-            if (isset($row['offsite']) && is_numeric($row['offsite'])) {
-                $totalsRow['offsite'] += $row['offsite'];
-            }
-
-            // sum each date column if numeric
             foreach ($dates as $d) {
                 if (isset($row[$d]) && is_numeric($row[$d])) {
-                    $totalsRow[$d] += $row[$d];
+                    $dateMinutes[$d] += $this->toMinutes($row[$d]);
                 }
             }
         }
 
-        // 3) Append the totals row to $finalReport
+        // 2) build the totals row, converting minutes back to H.MM floats
+        $totalsRow = [
+            'name'       => 'Totals',
+            'role'       => '',
+            'team'       => '',
+            'total_work' => $this->toHourMin($sumMinutes['total_work']),
+            'onsite'     => $this->toHourMin($sumMinutes['onsite']),
+            'offsite'    => $this->toHourMin($sumMinutes['offsite']),
+        ];
+        foreach ($dates as $d) {
+            $totalsRow[$d] = $this->toHourMin($dateMinutes[$d]);
+        }
+
         $finalReport[] = $totalsRow;
     }
 
@@ -297,4 +303,25 @@ abstract class AbstractUserReportController extends AbstractController
     
         return $transformedData;
     }	
+
+    /**
+    * Converts hour.decimal format (e.g., 7.5) to total minutes.
+    */
+    private function toMinutes($time): int
+    {
+        $hours = floor($time);
+        $fraction = $time - $hours;
+        $minutes = round($fraction * 100);
+        return ($hours * 60) + $minutes;
+    }
+
+    /**
+    * Converts total minutes to hour:minute format.
+    */
+    private function toHourMin(int $minutes): string
+    {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        return floatval(sprintf('%d.%02d', $hours, $mins));
+    }
 }
