@@ -956,7 +956,9 @@ class TimesheetRepository extends EntityRepository
         $qb->select('u')
             ->from(User::class, 'u')
             ->where($qb->expr()->notIn('u.id', $subQuery->getDQL())) // Exclude those with timesheet
-            ->setParameter('today', (new \DateTime())->format('Y-m-d'));
+            ->andWhere($qb->expr()->eq('u.enabled', ':enabled'))
+            ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+            ->setParameter('enabled', true);
 
         return $qb->getQuery()->getResult();
     }
