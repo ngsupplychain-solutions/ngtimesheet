@@ -65,6 +65,10 @@
                 {{ form_row(form.location, {'row_attr': {'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.location.vars.name}}) }}
             {% endif %}
 
+            {% if form.workPlace is defined %}
+                {{ form_row(form.workPlace, {'row_attr': {'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.workPlace.vars.name}}) }}
+            {% endif %}
+
             {% if form.jiraId is defined %}
                 {{ form_row(form.jiraId, {'row_attr': {'class': 'mb-3 ' ~ form.vars.name ~ '_row_' ~ form.jiraId.vars.name}}) }}
             {% endif %}

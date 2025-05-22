@@ -147,6 +147,12 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     #[Serializer\Groups(['Default'])]
     private ?string $location = null;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Assert\Choice(choices: ['office', 'home'], message: 'Choose a valid location.')]
+    #[Serializer\Expose]
+    #[Serializer\Groups(['Default'])]
+    private ?string $workPlace = null;
+
     #[ORM\ManyToOne(targetEntity: Team::class)]
     #[ORM\JoinColumn(name: 'team_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?Team $team = null;
@@ -368,6 +374,17 @@ class Timesheet implements EntityWithMetaFields, ExportableItem, ModifiedAt
     public function setLocation(?string $location): self
     {
         $this->location = $location;
+        return $this;
+    }
+
+    public function getWorkPlace(): ?string
+    {
+        return $this->workPlace;
+    }
+
+    public function setWorkPlace(?string $place): self
+    {
+        $this->workPlace = $place;
         return $this;
     }
 

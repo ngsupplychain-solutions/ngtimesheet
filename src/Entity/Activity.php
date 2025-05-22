@@ -20,6 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Table(name: 'kimai2_activities')]
 #[ORM\Index(columns: ['visible', 'project_id'])]
@@ -122,12 +123,62 @@ class Activity implements EntityWithMetaFields, EntityWithBudget, CreatedAt
     #[Exporter\Expose(label: 'activity_number')]
     private ?string $number = null;
 
+    /**
+     * Whether this activity uses a custom label symbol (V, W, S, CR, etc.)
+     */
+    #[ORM\Column(name: 'label_enabled', type: 'boolean', options: ['default' => false])]
+    private bool $labelEnabled = false;
+
+    /**
+     * The custom label symbol to display for this activity
+     */
+    #[ORM\Column(name: 'label_symbol', type: 'string', length: 5, nullable: true)]
+    #[Assert\Length(max: 5)]
+    private ?string $labelSymbol = null;
+
     public function __construct()
     {
         $this->meta = new ArrayCollection();
         $this->teams = new ArrayCollection();
         $this->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
     }
+
+    //--------------Label for symbol-----------------
+    public function isLabelEnabled(): bool
+    {
+        return $this->labelEnabled;
+    }
+
+    public function setLabelEnabled(bool $enabled): self
+    {
+        $this->labelEnabled = $enabled;
+        if (!$enabled) {
+            $this->labelSymbol = null;
+        }
+        return $this;
+    }
+
+    public function getLabelSymbol(): ?string
+    {
+        return $this->labelSymbol;
+    }
+
+    public function setLabelSymbol(?string $symbol): self
+    {
+        $this->labelSymbol = $symbol;
+        return $this;
+    }
+
+    // public function validateLabel(ExecutionContextInterface $context): void
+    // {
+    //     if ($this->labelEnabled && empty($this->labelSymbol)) {
+    //         $context->buildViolation('Please enter a label symbol when label is enabled.')
+    //             ->atPath('labelSymbol')
+    //             ->addViolation();
+    //     }
+    // }
+
+    // ----------------Label for symbol end---------------------
 
     public function getId(): ?int
     {

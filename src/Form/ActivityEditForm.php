@@ -21,6 +21,9 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 
 class ActivityEditForm extends AbstractType
 {
@@ -67,7 +70,32 @@ class ActivityEditForm extends AbstractType
                 'required' => false,
             ])
             ->add('invoiceText', InvoiceLabelType::class)
+
+            ->add('labelEnabled', CheckboxType::class, [
+                'label'    => 'Enable custom label',
+                'required' => false,
+            ])
+
+            ->add('labelSymbol', TextType::class, [
+                'label'    => 'Label symbol',
+                'required' => false,
+                'attr'     => ['maxlength' => 10],
+            ])
         ;
+
+        // Add event listener to conditionally require symbol
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
+            $data = $event->getData();
+            $form = $event->getForm();
+            if (!empty($data['labelEnabled'])) {
+                // make labelSymbol required
+                $form->add('labelSymbol', TextType::class, [
+                    'label'    => 'Label symbol',
+                    'required' => true,
+                    'attr'     => ['maxlength' => 10],
+                ]);
+            }
+        });
 
         if ($isNew || !$isGlobal) {
             $builder

@@ -166,9 +166,20 @@ class TimesheetEditForm extends AbstractType
             ],
             // or if you want a placeholder and to save "off-site" only if user never chooses:
              'placeholder' => 'Choose a location',
-             'empty_data'  => 'off-site',
+             'data'  => 'off-site',
             'required' => false,
         ]);
+
+        $builder->add('workPlace', ChoiceType::class, [
+            'label' => 'Work Place',
+            'choices' => [
+                'Office' => 'office',
+                'Home' => 'home',
+            ],
+            'required' => false,
+            'placeholder' => 'Select Work Place',
+            'data'  => 'home',
+        ]); 
 
         // ---------------Bind Teams Id in the Entry Begin---------------------------
         // 1. Get the currently logged-in user
