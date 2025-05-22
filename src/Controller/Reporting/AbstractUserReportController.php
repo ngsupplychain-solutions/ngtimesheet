@@ -87,6 +87,7 @@ abstract class AbstractUserReportController extends AbstractController
         return $transformedData;
     }
 
+    //Sheet 1
     protected function prepareAllUsersReport(array $userIds, string $startDate, string $endDate, ?Project $project = null, ?Int $team = null, bool $crFilter): array
     {
 
@@ -138,7 +139,8 @@ abstract class AbstractUserReportController extends AbstractController
                     'onsite'     => 0,
                     'offsite'    => 0,
                     'daily'      => array_fill_keys($dates, 0),
-                    'activities' => array_fill_keys($dates, [])
+                    'activities' => array_fill_keys($dates, []),
+                    'labels'     => array_fill_keys($dates, []), 
                 ];
             }
             // Accumulate totals
@@ -147,6 +149,10 @@ abstract class AbstractUserReportController extends AbstractController
             $reportData[$reportKey]['offsite'] += $entry['offsite_duration'];
             $reportData[$reportKey]['daily'][$workdate] += $totalDuration;
             $reportData[$reportKey]['activities'][$workdate][] = $activityName;
+
+            if ((int)$entry['isLabled'] === 1 && !empty($entry['label_symbol'])) {
+                $reportData[$reportKey]['labels'][$workdate][] = $entry['label_symbol'];
+            }
         }
 
         // Converting Min_totals in hours & Min
@@ -155,22 +161,6 @@ abstract class AbstractUserReportController extends AbstractController
             $reportData[$reportKey]['onsite'] = floatval(sprintf('%d.%02d', floor($data['onsite'] / 3600), floor(($data['onsite'] % 3600) / 60)));
             $reportData[$reportKey]['offsite'] = floatval(sprintf('%d.%02d', floor($data['offsite'] / 3600), floor(($data['offsite'] % 3600) / 60)));
         }
-
-
-        // Step 2: Build final pivot and check for 'leave' codes
-        // define the short codes for your known activities
-        $leaveMap = [
-            'week off'      => 'W',
-            'week-off'      => 'W',
-            'comp-off'      => 'C',
-            'comp off'      => 'C',
-            'vacation'      => 'V',
-            'sick'          => 'S',
-            'emergency'     => 'S',
-            'sick/emergency'=> 'S',
-            'change request' => 'CR',
-            'changerequest' => 'CR'
-        ];
 
         // Step 2: Prepare the final pivot report
         $finalReport = [];
@@ -189,17 +179,21 @@ abstract class AbstractUserReportController extends AbstractController
             foreach ($dates as $date) {
                 $val = $userRow['daily'][$date];
                 if ((float)$val === 0.0) {
-                    // see if any activity is in leaveMap
-                    $dayActivities = $userRow['activities'][$date] ?? [];
-                    // default code is 0 if no recognized leave found
-                    $code = 0;
-                    foreach ($dayActivities as $act) {
-                        if (isset($leaveMap[$act])) {
-                            $code = $leaveMap[$act];
+                    $label = 0;
+
+                    foreach ($projectData as $entry) {
+                        if (
+                            $entry['username']  === $userRow['name'] &&
+                            // $entry['team_name']=== $userRow['team']    &&
+                            $entry['workdate'] === $date               &&
+                            intval($entry['isLabled']) === 1
+                        ) {
+                            $label = $entry['label_symbol'];  // fetch directly from DB
                             break;
                         }
                     }
-                    $row[$date] = $code; // either 0 or 'W','C','S','V','CR'
+                    $row[$date] = $label;
+                    
                 } else {
                     // just keep the numeric total
                     $row[$date] = $val;

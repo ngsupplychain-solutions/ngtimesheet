@@ -566,7 +566,9 @@ class ProjectRepository extends EntityRepository
             'SUM(CASE WHEN LOWER(TRIM(t.location)) = \'off-site\' THEN t.duration ELSE 0 END) AS offsite_duration',
             'SUM(t.duration) AS total_duration',
             'a.name AS activity_name',
-            'tm.name AS team_name'
+            'tm.name AS team_name',
+            'a.label_enabled AS isLabled',
+            'a.label_symbol AS label_symbol'
         )
         ->from('kimai2_timesheet', 't')
         ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
@@ -576,7 +578,7 @@ class ProjectRepository extends EntityRepository
         ->where($queryBuilder->expr()->in('t.user', ':userIds'))
         ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.location','a.name, u.alias, u.title, tm.name')
+        ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.location','a.name, u.alias, u.title, tm.name,  a.label_enabled, a.label_symbol')
         ->orderBy('u.alias')
         ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
         ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
