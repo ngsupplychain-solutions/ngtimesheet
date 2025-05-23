@@ -527,7 +527,7 @@ class ProjectRepository extends EntityRepository
 
         $queryBuilder
         ->select("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30')) AS workdate", 't.day AS weekday', 'u.alias AS username', 'p.name AS project_name', 
-                    'SUM(t.duration) AS total_duration', 't.jira_ids', 't.description', 'a.name AS component')
+                    'SUM(t.duration) AS total_duration', 't.jira_ids', 't.description', 'a.name AS component', 't.work_place')
         ->from('kimai2_timesheet', 't')
         ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
         ->join('t', 'kimai2_projects', 'p', 'p.id = t.project_id')
@@ -535,7 +535,7 @@ class ProjectRepository extends EntityRepository
         ->where('t.user = :userId')
         ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
         ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-        ->groupBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.day', 'p.name', 'u.alias', 't.jira_ids', 't.description', 'a.name')
+        ->groupBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 't.day', 'p.name', 'u.alias', 't.jira_ids', 't.description', 'a.name', 't.work_place')
         ->orderBy('p.name')
         ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
         ->setParameters([
@@ -620,7 +620,8 @@ class ProjectRepository extends EntityRepository
                 'SUM(t.duration) AS total_duration',
                 't.jira_ids',
                 't.description',
-                'a.name AS component'
+                'a.name AS component',
+                't.work_place'
             ) 
             ->from('kimai2_timesheet', 't')
             ->join('t', 'kimai2_users', 'u', 'u.id = t.user')
@@ -629,7 +630,7 @@ class ProjectRepository extends EntityRepository
             ->where($queryBuilder->expr()->in('t.user', ':userIds'))
             ->andWhere('t.start_time BETWEEN :startDate AND :endDate')
             ->andWhere('a.name NOT IN (:excludedActivities)')  // Adding NOT IN clause for a.name (exclude 'CR')
-            ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 'p.name', 't.jira_ids', 't.description', 't.day', 'a.name')
+            ->groupBy('u.id', "DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))", 'p.name', 't.jira_ids', 't.description', 't.day', 'a.name', 't.work_place')
             ->addOrderBy("DATE(CONVERT_TZ(t.start_time, '+00:00', '+05:30'))")
             ->setParameter('userIds', $userIds, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY)
             ->setParameter('startDate', $startDate)

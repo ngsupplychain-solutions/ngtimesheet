@@ -8,7 +8,8 @@
             <th>Component</th>
             <th>Week_Day</th>
             <th>Work_Date</th>
-            <th class="text-center reportDataTypeTitle">Total_hours(hrs)</th>
+            <th>WorkAt</th>
+            <th class="text-center reportDataTypeTitle">Total(hrs)</th>
             <th>Jira_Id</th>
             <th>Description</th>
         </tr>
@@ -20,6 +21,7 @@
                 <td>{{ entry.component }}</td>
                 <td>{{ entry.weekday }}</td>
                 <td>{{ entry.workdate }}</td>
+                <td>{{ entry.workAt}}</td>
                 <td>{{ entry.hours }}</td>
                 <td>{{ entry.jira_ids }}</td>
                 <td>{{ entry.description }}</td>

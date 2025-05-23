@@ -66,6 +66,7 @@ abstract class AbstractUserReportController extends AbstractController
             $description = $entry['description']; 
             $component = $entry['component'];
             $username = $entry['username'];
+            $workAt = $entry['work_place'];
 
             // Convert seconds to hours
             $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
@@ -80,6 +81,7 @@ abstract class AbstractUserReportController extends AbstractController
                 'jira_ids' => $jiraIds,
                 'description' => $description,
                 'component' => $component,
+                'workAt' => $workAt,
             ];
 
         }
@@ -278,6 +280,7 @@ abstract class AbstractUserReportController extends AbstractController
             $jiraIds = $entry['jira_ids'];
             $description = $entry['description'];
             $component = $entry['component'];
+            $workAt = $entry['work_place'];
     
             // Convert seconds to hours.
             $hoursWorked = floatval(sprintf('%d.%02d', floor($secondsWorked / 3600), floor(($secondsWorked % 3600) / 60)));
@@ -291,6 +294,7 @@ abstract class AbstractUserReportController extends AbstractController
                 'jira_ids' => $jiraIds,
                 'description' => $description,
                 'component' => $component,
+                'workAt' => $workAt,
             ];
 
         }

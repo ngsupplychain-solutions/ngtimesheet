@@ -108,7 +108,7 @@ class ExportUsersStyle
 			// If the component is one of our keys and duration equals 0, apply the fill.
 			if ((isset($componentColors[$component]) && $duration === 0.0)||(isset($componentColors[$component]))) {
 				// Define the range to fill (adjust the range as needed; here we fill columns A to G).
-				$range = "A{$row}:G{$row}";
+				$range = "A{$row}:H{$row}";
 				$worksheet->getStyle($range)->applyFromArray([
 					'fill' => [
 						'fillType'   => Fill::FILL_SOLID,
