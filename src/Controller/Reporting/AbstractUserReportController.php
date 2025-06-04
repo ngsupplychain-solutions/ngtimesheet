@@ -207,8 +207,7 @@ abstract class AbstractUserReportController extends AbstractController
 
         // Step 4: sort by team name then username
         usort($finalReport, function ($a, $b) {
-            $teamCmp = strcmp($a['team'], $b['team']);
-            return $teamCmp === 0 ? strcmp($a['name'], $b['name']) : $teamCmp;
+            return strcasecmp($a['name'], $b['name']);
         });
         
         $this->appendTotalsRow($finalReport, $dates);
