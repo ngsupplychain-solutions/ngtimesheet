@@ -205,7 +205,6 @@ class TimesheetEditForm extends AbstractType
             'class'         => Team::class,
             'choices'       => $userTeams,
             'choice_label'  => 'name',
-            'placeholder'   => '— no team —',
             'required'      => true,
             'label'         => 'Team',
         ]);
